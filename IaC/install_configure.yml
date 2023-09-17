@@ -1,10 +1,48 @@
 # apt install ansible
 # conda deactivate
-# ansible-playbook -i hosts install_configure.yml --user=ubuntu
-# ansible-playbook -i hosts install_configure.yml --start-at-task="Set Jicofo memory limit" --step --user=ubuntu
-# ansible-playbook -i hosts install_configure.yml  --tags "Recompiles Jitsi VideoBridge2 JAR file"
+# ansible-playbook -i hosts install_configure.yml  --extra-vars "create_netplan_config=false" --user=ubuntu
+# ansible-playbook -i hosts install_configure.yml  --extra-vars "create_netplan_config=false" --start-at-task="Set Jicofo memory limit" --step --user=ubuntu
+# ansible-playbook -i hosts install_configure.yml  --extra-vars "create_netplan_config=false" --tags "Recompiles Jitsi VideoBridge2 JAR file"
 
 ---
+- name: Configure network with netplan
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Create netplan configuration file
+      copy:
+        dest: /etc/netplan/01-netcfg.yaml
+        content: |
+          network:
+            version: 2
+            renderer: networkd
+            ethernets:
+              eth0:
+                mtu: "1472"
+                dhcp4: false
+                addresses: [10.0.0.2/24]
+                routes:
+                  - to: default
+                    via: 10.0.0.1
+                nameservers:
+                  addresses: [10.0.0.2]
+            wifis:
+              wlan0:
+                access-points:
+                  CasaSurace:
+                    password: "{{ lookup('env', 'WIFI_SECRET') }}"
+                optional: true
+                mtu: "1472"
+                dhcp4: false
+                addresses: [192.168.178.190/24]
+                nameservers:
+                  addresses: [127.0.0.1]
+      when: create_netplan_config | default(false)
+
+    - name: Apply netplan configuration
+      command: netplan apply
+
 - name: Install and configure software on Debian-based system
   hosts: all
   become: true
