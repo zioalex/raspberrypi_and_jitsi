@@ -1,0 +1,22 @@
+{
+	"folders": [
+		{
+			"path": "jitsi_gemeinde_backend"
+		},
+		{
+			"path": "jitsi_gemeinde_frontend"
+		},
+		{
+			"path": "."
+		},
+		{
+			"path": ".."
+		},
+		{
+			"path": "../../../raspberrypi_and_jitsi"
+		}
+	],
+	"settings": {
+		"ansible.python.interpreterPath": "/usr/bin/python"
+	}
+}
