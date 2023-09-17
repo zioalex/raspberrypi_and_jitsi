@@ -1,0 +1,401 @@
+# apt install ansible
+# conda deactivate
+# ansible-playbook -i hosts install_configure.yml --user=ubuntu
+# ansible-playbook -i hosts install_configure.yml --start-at-task="Set Jicofo memory limit" --step --user=ubuntu
+# ansible-playbook -i hosts install_configure.yml  --tags "Recompiles Jitsi VideoBridge2 JAR file"
+
+---
+- name: Install and configure software on Debian-based system
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Install OpenJDK 8
+      apt:
+        name: ['openjdk-8-jdk-headless', 'openjdk-8-jre', 'openjdk-8-jre-headless', 'openjdk-8-jdk']
+        state: present
+
+    - name: Add Debian repositories for Chromium
+      copy:
+        dest: /etc/apt/sources.list.d/debian.list
+        content: |
+          deb [arch=arm64] http://ftp.ch.debian.org/debian bullseye main 
+          deb [arch=arm64] http://ftp.ch.debian.org/debian bullseye-updates main 
+
+    - name: Add Ubuntu keys for Chromium
+      apt_key:
+        keyserver: keyserver.ubuntu.com
+        id: "{{ item }}"
+      with_items:
+        - 0E98404D386FA1D9
+        - 6ED0E7B82643E131
+        - 648ACFD622F3D138
+        - 605C66F00D6C9793
+
+    - name: Configure package priorities for Chromium
+      copy:
+        dest: /etc/apt/preferences.d/chromium.pref
+        content: |
+          # Note: 2 blank lines are required between entries
+          Package: *
+          Pin: release a=eoan
+          Pin-Priority: 500
+
+          Package: *
+          Pin: origin "deb.debian.org"
+          Pin-Priority: 300
+
+          # Pattern includes 'chromium', 'chromium-browser' and similarly
+          # named dependencies:
+          Package: chromium*
+          Pin: origin "deb.debian.org"
+          Pin-Priority: 700
+
+    - name: Install required packages
+      apt:
+        name: ['tightvncserver', 'xinit', 'xserver-xorg', 'gnome-tweaks', 'pavucontrol', 'xserver-xorg-legacy', 'ffmpeg', 'curl', 'alsa-utils', 'icewm', 'xdotool', 'xserver-xorg-video-dummy', 'ruby-hocon']
+        state: present
+
+    - name: Select OpenJDK 8
+      become: true
+      command: update-alternatives --config java
+      args:
+        stdin: '1\n'
+
+    - name: Configure X11 to allow any user to start
+      lineinfile:
+        path: /etc/X11/Xwrapper.config
+        regexp: '^allowed_users='
+        line: 'allowed_users=anybody'
+
+    - name: Install Chromium
+      apt:
+        name: ['chromium-browser','chromium-chromedriver']
+        state: present
+      notify:
+        - Create Chrome policies directory
+
+    - name: Create Chrome policies directory
+      become: true
+      file:
+        path: /etc/opt/chrome/policies/managed
+        state: directory
+      notify:
+        - Create Chrome policies file
+
+    - name: Create Chrome policies file
+      become: true
+      file:
+        path: /etc/opt/chrome/policies/managed/managed_policies.json
+        state: touch
+      # notify:
+      #   - Add Chrome security policy
+
+    - name: Add Chrome security policy
+      become: true
+      lineinfile:
+        path: /etc/opt/chrome/policies/managed/managed_policies.json
+        line: '{ "CommandLineFlagSecurityWarningsEnabled": false }'
+    
+- name: Install and configure Jitsi Meet
+  tags: 
+    - Installs_and_configures_Jitsi_Meet
+  hosts: all
+  become: true
+  vars:
+    jitsi_hostname: translation.sennsolutions.com
+  tasks:
+    - name: Add Jitsi Meet repository key
+      apt_key:
+        url: https://download.jitsi.org/jitsi-key.gpg.key
+
+    - name: Add Jitsi Meet repository
+      apt_repository:
+        repo: 'deb [signed-by=/usr/share/keyrings/jitsi-keyring.gpg] https://download.jitsi.org stable/'
+        state: present
+      notify:
+        - Install Jitsi Meet
+
+    - name: Install Jitsi Meet
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - jitsi-meet
+          - jitsi-meet-prosody
+          - jitsi-videobridge2
+          - jitsi-meet-web
+          - default-jdk
+        update_cache: yes
+      notify:
+        - Set Jitsi Videobridge memory limit
+        - Set Jicofo memory limit
+
+    - name: Set Jitsi Videobridge memory limit
+      lineinfile:
+        path: /etc/jitsi/videobridge/config
+        line: 'VIDEBRIDGE_MAX_MEMORY=1024m'
+
+    - name: Set Jicofo memory limit
+      lineinfile:
+        path: /etc/jitsi/jicofo/config
+        line: 'JICOFO_MAX_MEMORY=1024m'
+
+    - name: Create {{ jitsi_hostname }}-config.js
+      become: true
+      file:
+        path: /etc/jitsi/meet/{{ jitsi_hostname }}-config.js
+        state: touch
+
+    - name: Copy Jitsi Meet configuration file
+      become: true
+      copy:
+        src: files/translation.sennsolutions.com-config.js
+        dest: /etc/jitsi/meet/{{ jitsi_hostname }}-config.js
+
+    
+    - name: Copy SSL certificate and key files
+      become: true
+      copy:
+        src: files/ssl_certs/
+        dest: /etc/ssl/
+        mode: '0644'
+        owner: root
+        group: root
+
+    - name: Copy Jicofo configuration file
+      become: true
+      copy:
+        src: files/jitsi_config/jicofo.conf
+        dest: /etc/jitsi/jicofo/
+        mode: '0644'
+        owner: root
+        group: root
+
+    - name: Copy jvb configuration file
+      become: true
+      copy:
+        src: files/jitsi_config/jvb.conf
+        dest: /etc/jitsi/videobridge/
+        mode: '0644'
+        owner: root
+        group: root
+    
+    - name: Copy sip commnication configuration file
+      become: true
+      copy:
+        src: files/jitsi_config/sip-communicator.properties
+        dest: /etc/jitsi/videobridge/
+        mode: '0644'
+        owner: root
+        group: root
+    
+    - name: Copy the Nginx configuration
+      become: true
+      copy:
+        src: files/nginx/translation.sennsolutions.com.conf
+        dest: /etc/nginx/sites-available/
+        mode: '0644'
+        owner: root
+        group: root
+    
+    # Removed old certificate
+#      auth.translation.home.local.crt -> /var/lib/prosody/auth.translation.home.local.crt
+#  auth.translation.home.local.key -> /var/lib/prosody/auth.translation.home.local.key
+#  localhost.crt -> /etc/ssl/certs/ssl-cert-snakeoil.pem
+#  localhost.key -> /etc/ssl/private/ssl-cert-snakeoil.key
+#  translation.home.local.crt -> /var/lib/prosody/translation.home.local.crt
+#  translation.home.local.key -> /var/lib/prosody/translation.home.local.key
+# translation:/etc/prosody/conf.avail# rm translation.home.local.cfg.lua
+# translation:/etc/prosody/conf.d# rm translation.home.local.cfg.lua
+    - name: Copy the Prosody configuration
+      become: true
+      copy:
+        src: files/prosody/translation.sennsolutions.com.cfg.lua
+        dest: /etc/prosody/conf.avail
+        mode: '0644'
+        owner: root
+        group: root
+
+    # how to create the certificate files on the fly
+    - name: Copy certificate files to /etc/prosody/certs
+      become: true
+      copy:
+        src: files/prosody/certs/
+        dest: /etc/prosody/certs/
+        mode: '0640'
+        owner: prosody
+        group: prosody
+        
+    - name: Enable the Prosody configuration file
+      become: true
+      file:
+        src:  /etc/prosody/conf.avail/translation.sennsolutions.com.cfg.lua
+        dest: /etc/prosody/conf.d/translation.sennsolutions.com.cfg.lua 
+        state: link
+
+    - name: Create Prosody private key
+      become: true
+      openssl_privatekey:
+        path: /etc/prosody/certs/translation.sennsolutions.com.key
+        type: RSA
+        size: 4096
+        state: present
+        owner: prosody
+        group: prosody
+        mode: '0644'
+
+    - name: Create Prosody CSR files
+      become: true
+      openssl_csr:
+        path: /etc/prosody/certs/translation.sennsolutions.com.csr
+        common_name: translation.sennsolutions.com
+        privatekey_path: /etc/prosody/certs/translation.sennsolutions.com.key
+        state: present
+        owner: prosody
+        group: prosody
+        mode: '0644'
+    - name: Create Prosody SSL certificate
+      become: true
+      openssl_certificate:
+        path: /etc/prosody/certs/translation.sennsolutions.com.crt
+        privatekey_path: /etc/prosody/certs/translation.sennsolutions.com.key
+        csr_path: /etc/prosody/certs/translation.sennsolutions.com.csr
+        provider: selfsigned
+        state: present
+        owner: prosody
+        group: prosody
+        mode: '0644'
+
+
+
+    # How to loop through files in a directory with Ansible
+    # - name: Disable other Nginx configuration files
+    #   become: true
+    #   file:
+    #     src: /etc/nginx/sites-enabled/{{ item }}
+    #     state: absent
+    #   with_fileglob: /etc/nginx/sites-enabled/*
+    #   # loop: "{{ query('fileglob', '/etc/nginx/sites-enabled/*') }}"
+    #   # exclude:
+    #   #   - default
+    #   #   - translation.sennsolutions.com.conf
+
+    - name: Enable Jitsi Nginx configuration file
+      become: true
+      file:
+        src: /etc/nginx/sites-available/translation.sennsolutions.com.conf
+        dest: /etc/nginx/sites-enabled/translation.sennsolutions.com.conf
+        state: link
+       
+    - name: Enable default Nginx configuration file
+      become: true
+      file:
+        src: /etc/nginx/sites-available/default
+        dest: /etc/nginx/sites-enabled/default
+        state: link
+       
+    - name: Reload Nginx configuration
+      become: true
+      systemd:
+        name: nginx
+        state: reloaded
+    
+    - name: Enable and start Nginx service
+      systemd:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Restart Jitsi Meet
+      become: true
+      service:
+        name: jitsi-videobridge2
+        state: restarted
+        
+# - name: Recompile and deploy Jitsi VideoBridge2 JAR file
+#   hosts: all
+#   become: true
+#   tags: 
+#     - Recompiles Jitsi VideoBridge2 JAR file
+#   tasks:
+#     - name: Install necessary packages
+#       apt:
+#         name:
+#           - git
+#           - maven
+#           - openjdk-8-jdk
+#           - libssl-dev
+#           - pkg-config
+#           - zlib1g-dev
+#           - libtool
+#           - build-essential
+
+#     - name: Clone usrsctp repository
+#       git:
+#         repo: https://github.com/sctplab/usrsctp.git
+#         dest: /opt/usrsctp
+#         version: master
+
+#     - name: Reset Git repository
+#       command: git reset --hard
+#       args:
+#         chdir: /opt/jitsi-sctp
+
+#     - name: Clone jitsi-sctp repository
+#       git:
+#         repo: https://github.com/jitsi/jitsi-sctp.git
+#         dest: /opt/jitsi-sctp
+#         version: master
+
+#     - name: Remove dir usrsctp directory
+#       file:
+#         path: /opt/jitsi-sctp/usrsctp/usrsctp
+#         state: absent
+#       # when: dir_check.stat.exists and dir_check.stat.isdir
+
+#     - name: Move usrsctp directory into jitsi-sctp directory
+#       command: mv /opt/usrsctp /opt/jitsi-sctp/usrsctp/usrsctp
+#       # when: not dir_check.stat.exists
+
+#     - name: Build jitsi-sctp project
+#       command: mvn package -DbuildSctp -DbuildNativeWrapper -DdeployNewJnilib -DskipTests
+#       args:
+#         chdir: /opt/jitsi-sctp
+#       register: build_output
+
+#     - name: Debug build output
+#       debug:
+#         var: build_output
+
+#     - name: Create lib directory
+#       file:
+#         path: /opt/jitsi-sctp/jniwrapper/native/src/main/resources/lib/linux
+#         state: directory
+
+#     - name: Copy libjnisctp.so
+#       command: cp /opt/jitsi-sctp/jniwrapper/native/target/libjnisctp-linux-aarch64.so /opt/jitsi-sctp/jniwrapper/native/src/main/resources/lib/linux/libjnisctp.so
+
+#     - name: Repackage jniwrapper-native-1.0-SNAPSHOT.jar
+#       command: mvn package
+#       args:
+#         chdir: /opt/jitsi-sctp/jniwrapper/native
+
+#     - name: Copy jniwrapper-native-1.0-SNAPSHOT.jar to Jitsi VideoBridge2
+#       command: cp /opt/jitsi-sctp/jniwrapper/native/target/jniwrapper-native-1.0-SNAPSHOT.jar /usr/share/jitsi-videobridge/lib/jniwrapper-native-1.0-SNAPSHOT.jar
+
+#     - name: Add jibri user to groups
+#       user:
+#         name: jibri
+#         groups: adm,audio,video,plugdev
+#         append: yes
+
+#     - name: Restart Jitsi Meet
+#       become: true
+#       service:
+#         name: jitsi-videobridge2
+#         state: restarted
+
+
