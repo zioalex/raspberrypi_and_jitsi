@@ -1,0 +1,4 @@
+[submodule "Legacy_WIP/jitsi-meet-react-sdk"]
+	path = Legacy_WIP/jitsi-meet-react-sdk
+	url = https://github.com/zioalex/jitsi-meet-react-sdk
+	branch = main
