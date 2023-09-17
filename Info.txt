@@ -134,9 +134,9 @@ JICOFO_MAX_MEMORY Adapted to run on Raspberry Pi 4
 	sudo usermod -aG adm,audio,video,plugdev jibri
 
 
-	# prosody config
-	prosodyctl register jibri auth.translation.home.local jibriauthpass
-	prosodyctl register recorder recorder.translation.home.local jibrirecorderpass
+	# prosody config - NOT SURE IF NEEDED
+	prosodyctl register jibri auth.translation.sennsolutions.com jibriauthpass
+	prosodyctl register recorder recorder.translation.sennsolutions.com jibrirecorderpass
 
 	ln -s /etc/opt/chrome/policies/ /etc/chromium/ # config for chrome and Chromium are stored in different placeS
 

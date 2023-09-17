@@ -248,6 +248,8 @@
 #  translation.home.local.key -> /var/lib/prosody/translation.home.local.key
 # translation:/etc/prosody/conf.avail# rm translation.home.local.cfg.lua
 # translation:/etc/prosody/conf.d# rm translation.home.local.cfg.lua
+# Cleaup old prosody config in /var/lib/prosody/
+# rm *.home.local*  rm auth%2etranslation%2ehome%2elocal   
     - name: Copy the Prosody configuration
       become: true
       copy:
@@ -258,15 +260,69 @@
         group: root
 
     # how to create the certificate files on the fly
-    - name: Copy certificate files to /etc/prosody/certs
+    - name: Copy certificate files to /var/lib&/prosody/
       become: true
       copy:
         src: files/prosody/certs/
-        dest: /etc/prosody/certs/
+        dest: /var/lib/prosody/
         mode: '0640'
         owner: prosody
         group: prosody
-        
+    
+    - name: Create links for files ending with .key
+      become: true
+      find:
+        paths: /var/lib/prosody
+        patterns: '*.key'
+      register: key_files
+
+    - name: Create symbolic links for key files
+      become: true
+      vars:
+        basename: "{{ lookup('pipe', 'echo basename') }}"
+      file:
+        src: "{{ item.path }}"
+        dest: "/etc/prosody/certs/{{ item.path | basename }}"
+        state: link
+        force: yes
+      loop: "{{ key_files.files }}"
+
+    - name: Create links for files ending with .cnf
+      become: true
+      find:
+        paths: /var/lib/prosody
+        patterns: '*.cnf'
+      register: cnf_files
+
+    - name: Create symbolic links for cnf files
+      become: true
+      vars:
+        basename: "{{ lookup('pipe', 'echo basename') }}"
+      file:
+        src: "{{ item.path }}"
+        dest: "/etc/prosody/certs/{{ item.path | basename }}"
+        state: link
+        force: yes
+      loop: "{{ cnf_files.files }}"
+
+    - name: Create links for files ending with .crt
+      become: true
+      find:
+        paths: /var/lib/prosody
+        patterns: '*.crt'
+      register: crt_files
+
+    - name: Create symbolic links for crt files
+      become: true
+      vars:
+        basename: "{{ lookup('pipe', 'echo basename') }}"
+      file:
+        src: "{{ item.path }}"
+        dest: "/etc/prosody/certs/{{ item.path | basename }}"
+        state: link
+        force: yes
+      loop: "{{ crt_files.files }}"
+
     - name: Enable the Prosody configuration file
       become: true
       file:
@@ -274,38 +330,38 @@
         dest: /etc/prosody/conf.d/translation.sennsolutions.com.cfg.lua 
         state: link
 
-    - name: Create Prosody private key
-      become: true
-      openssl_privatekey:
-        path: /etc/prosody/certs/translation.sennsolutions.com.key
-        type: RSA
-        size: 4096
-        state: present
-        owner: prosody
-        group: prosody
-        mode: '0644'
+    # - name: Create Prosody private key
+    #   become: true
+    #   openssl_privatekey:
+    #     path: /etc/prosody/certs/translation.sennsolutions.com.key
+    #     type: RSA
+    #     size: 4096
+    #     state: present
+    #     owner: prosody
+    #     group: prosody
+    #     mode: '0644'
 
-    - name: Create Prosody CSR files
-      become: true
-      openssl_csr:
-        path: /etc/prosody/certs/translation.sennsolutions.com.csr
-        common_name: translation.sennsolutions.com
-        privatekey_path: /etc/prosody/certs/translation.sennsolutions.com.key
-        state: present
-        owner: prosody
-        group: prosody
-        mode: '0644'
-    - name: Create Prosody SSL certificate
-      become: true
-      openssl_certificate:
-        path: /etc/prosody/certs/translation.sennsolutions.com.crt
-        privatekey_path: /etc/prosody/certs/translation.sennsolutions.com.key
-        csr_path: /etc/prosody/certs/translation.sennsolutions.com.csr
-        provider: selfsigned
-        state: present
-        owner: prosody
-        group: prosody
-        mode: '0644'
+    # - name: Create Prosody CSR files
+    #   become: true
+    #   openssl_csr:
+    #     path: /etc/prosody/certs/translation.sennsolutions.com.csr
+    #     common_name: translation.sennsolutions.com
+    #     privatekey_path: /etc/prosody/certs/translation.sennsolutions.com.key
+    #     state: present
+    #     owner: prosody
+    #     group: prosody
+    #     mode: '0644'
+    # - name: Create Prosody SSL certificate
+    #   become: true
+    #   openssl_certificate:
+    #     path: /etc/prosody/certs/translation.sennsolutions.com.crt
+    #     privatekey_path: /etc/prosody/certs/translation.sennsolutions.com.key
+    #     csr_path: /etc/prosody/certs/translation.sennsolutions.com.csr
+    #     provider: selfsigned
+    #     state: present
+    #     owner: prosody
+    #     group: prosody
+    #     mode: '0644'
 
 
 
