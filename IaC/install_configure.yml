@@ -4,9 +4,21 @@
 # ansible-playbook -i hosts install_configure.yml  --extra-vars "create_netplan_config=false" --start-at-task="Set Jicofo memory limit" --step --user=ubuntu
 # ansible-playbook -i hosts install_configure.yml  --extra-vars "create_netplan_config=false" --tags "Recompiles Jitsi VideoBridge2 JAR file"
 
+# REMEMBER TO INSTALL THE LATEST ANSIBLE VERSION. OLDER ONES HAVE BUGS
+# https://www.cyberciti.biz/faq/how-to-install-and-configure-latest-version-of-ansible-on-ubuntu-linux/
+# sudo apt remove ansible
+# sudo apt --purge autoremove
+# sudo apt update
+# sudo apt upgrade
+# sudo apt -y install software-properties-common
+# sudo apt-add-repository ppa:ansible/ansible
+# sudo apt install ansible ansible-lint
+
 ---
 - name: Configure network with netplan
   hosts: all
+  vars_files:
+    - vars/main.yml
   become: true
 
   tasks:
@@ -45,6 +57,8 @@
 
 - name: Install and configure software on Debian-based system
   hosts: all
+  vars_files:
+    - vars/main.yml
   become: true
 
   tasks:
@@ -139,6 +153,8 @@
   tags: 
     - Installs_and_configures_Jitsi_Meet
   hosts: all
+  vars_files:
+    - vars/main.yml
   become: true
   vars:
     jitsi_hostname: translation.sennsolutions.com
@@ -260,7 +276,10 @@
         group: root
 
     # how to create the certificate files on the fly
-    - name: Copy certificate files to /var/lib&/prosody/
+    # prosodyctl cert generate  translation.sennsolutions.com 
+    # prosodyctl cert generate auth.translation.sennsolutions.com
+    # prosodyctl reload
+    - name: Copy certificate files to /var/lib/prosody/
       become: true
       copy:
         src: files/prosody/certs/
@@ -330,6 +349,55 @@
         dest: /etc/prosody/conf.d/translation.sennsolutions.com.cfg.lua 
         state: link
 
+    - name: Print variable
+      debug:
+        var: jitsi_fqdn
+
+    - name: Prosody Auth cert link to /usr/local/share/ca-certificates
+      become: true
+      file:
+        src:  /var/lib/prosody/auth.{{ jitsi_fqdn }}.crt
+        dest: /usr/local/share/ca-certificates/auth.{{ jitsi_fqdn }}.crt
+        state: link
+
+    - name: Prosody Auth cert link to /etc/ssl/certs
+      become: true
+      file:
+        src:  /usr/local/share/ca-certificates/auth.{{ jitsi_fqdn }}.crt
+        dest: /etc/ssl/certs/auth.{{ jitsi_fqdn }}.crt
+        state: link
+
+    - name: Update the CA certificates
+      become: true
+      command: update-ca-certificates -f
+
+- name: Configure Coturn service
+  hosts: all
+  vars_files:
+    - vars/main.yml
+  become: true
+  tasks:
+    - name: Coturn cert link to /etc/coturn/certs
+      become: true
+      file:
+        src:  /etc/ssl/{{ jitsi_fqdn }}.crt
+        dest: /etc/coturn/certs/{{ jitsi_fqdn }}.crt
+        state: link
+    - name: Coturn key link to /etc/coturn/certs
+      become: true
+      file:
+        src:  /etc/ssl/{{ jitsi_fqdn }}.key
+        dest: /etc/coturn/certs/{{ jitsi_fqdn }}.key
+        state: link
+    - name: Copy turnserver config
+      become: true
+      copy:
+        src: files/coturn/turnserver.conf
+        dest: /etc/turnserver.conf
+        mode: '0644'
+        owner: turnserver
+        group: root 
+
     # - name: Create Prosody private key
     #   become: true
     #   openssl_privatekey:
@@ -397,6 +465,13 @@
         name: nginx
         state: reloaded
     
+    - name: Restart Coturn
+      become: true
+      systemd:
+        name: coturn
+        state: restarted
+        enabled: yes
+
     - name: Enable and start Nginx service
       systemd:
         name: nginx
