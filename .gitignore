@@ -4,3 +4,4 @@
 **/node_modules
 Legacy_WIP/jitsi_control/
 **/secrets*
+**/.~lock.*
