@@ -3,7 +3,7 @@ set -x
 #xset s noblank 
 #xset s off 
 #exec pulseaudio -v --start -D &
-exec icewm --replace &
+# exec icewm --replace & # This doesn't work with the new RPI 4 
 
 logger "Run by $0 as part of the vnc startup"
 

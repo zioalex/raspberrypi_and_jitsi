@@ -500,7 +500,7 @@
         createhome: yes
         home: /home/pi
         password: "{{ lookup('env', 'PI_PASSWORD') }}"
-        groups: sudo
+        groups: sudo, tty, adm, dialout, audio, video, plugdev, netdev, pulse-access, users, ssl-cert
         append: yes
     - name: Copy .xsessionrc file
       become: true
@@ -534,6 +534,30 @@
         name: vncserver
         state: started
         enabled: yes
+    - name: Update Xwrapper.config
+      become: true
+      lineinfile:
+        path: /etc/X11/Xwrapper.config
+        regexp: "^#?allowed_users="
+        line: "allowed_users=anybody"
+        state: present
+      tags: x11
+    - name: Create pi_session service
+      become: true
+      copy:
+        src: files/system/pi_session.service
+        dest: /etc/systemd/system/pi_session.service
+        mode: '0644'
+        owner: root
+        group: root
+      tags: x11
+    - name: Enable pi_session service
+      become: true
+      systemd:
+        name: pi_session
+        state: started
+        enabled: yes
+      tags: x11
 
 
 # - name: Recompile and deploy Jitsi VideoBridge2 JAR file
