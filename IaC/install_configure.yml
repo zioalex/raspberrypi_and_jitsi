@@ -1,5 +1,7 @@
 # apt install ansible
 # conda deactivate
+# Load the secrets environment variables
+# . secrets.env
 # ansible-playbook -i hosts install_configure.yml  --extra-vars "create_netplan_config=false" --user=ubuntu
 # ansible-playbook -i hosts install_configure.yml  --extra-vars "create_netplan_config=false" --start-at-task="Set Jicofo memory limit" --step --user=ubuntu
 # ansible-playbook -i hosts install_configure.yml  --extra-vars "create_netplan_config=false" --tags "Recompiles Jitsi VideoBridge2 JAR file"
@@ -483,7 +485,81 @@
       service:
         name: jitsi-videobridge2
         state: restarted
-        
+- name: Configure VNC and start X11
+  tags: 
+    - Installs_and_configures_VNC
+  hosts: all
+  vars_files:
+    - vars/main.yml
+  become: true
+  tasks:
+    - name: Create PI user
+      user:
+        name: pi
+        shell: /bin/bash
+        createhome: yes
+        home: /home/pi
+        password: "{{ lookup('env', 'PI_PASSWORD') }}"
+        groups: sudo, tty, adm, dialout, audio, video, plugdev, netdev, pulse-access, users, ssl-cert
+        append: yes
+    - name: Copy .xsessionrc file
+      become: true
+      copy:
+        src: files/pi_user/xsessionrc
+        dest: /home/pi/.xsessionrc
+        mode: '0644'
+        owner: pi
+        group: pi
+    - name: Copy VNC service file
+      become: true
+      copy:
+        src: files/system/vncserver.service
+        dest: /etc/systemd/system/vncserver.service
+        mode: '0644'
+        owner: root
+        group: root
+    - name: Create VNC password
+      become: true
+      command: echo {{ lookup('env', 'VNC_PASSWORD') }} | vncpasswd  -f  > /home/pi/.vnc/passwd 
+    - name: Set VNC password owner
+      become: true
+      file:
+        path: /home/pi/.vnc/passwd
+        owner: pi
+        group: pi
+        mode: '0600'
+    - name: Enable VNC service
+      become: true
+      systemd:
+        name: vncserver
+        state: started
+        enabled: yes
+    - name: Update Xwrapper.config
+      become: true
+      lineinfile:
+        path: /etc/X11/Xwrapper.config
+        regexp: "^#?allowed_users="
+        line: "allowed_users=anybody"
+        state: present
+      tags: x11
+    - name: Create pi_session service
+      become: true
+      copy:
+        src: files/system/pi_session.service
+        dest: /etc/systemd/system/pi_session.service
+        mode: '0644'
+        owner: root
+        group: root
+      tags: x11
+    - name: Enable pi_session service
+      become: true
+      systemd:
+        name: pi_session
+        state: started
+        enabled: yes
+      tags: x11
+
+
 # - name: Recompile and deploy Jitsi VideoBridge2 JAR file
 #   hosts: all
 #   become: true

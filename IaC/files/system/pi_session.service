@@ -1,0 +1,13 @@
+[Unit]
+Description=X for pi
+After=vncserver.service
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+Restart=always
+ExecStart=/usr/bin/startx
+
+[Install]
+WantedBy=multi-user.target

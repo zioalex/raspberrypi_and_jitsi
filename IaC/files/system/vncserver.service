@@ -1,0 +1,16 @@
+[Unit]
+Description=TightVNC server
+After=syslog.target network.target jitsi-videobridge2.service
+Requires=jitsi-videobridge2.service
+
+[Service]
+Type=forking
+User=pi
+#PAMName=login
+PIDFile=/home/pi/.vnc/%H:1.pid
+ExecStartPre=-/usr/bin/vncserver  -kill :1 > /dev/null 2>&1
+ExecStart=/usr/bin/vncserver -geometry 480x320
+ExecStop=/usr/bin/vncserver -kill :1 ; pkill parecord ; pkill pulseaudio
+
+[Install]
+WantedBy=multi-user.target
