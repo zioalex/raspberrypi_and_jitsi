@@ -107,7 +107,7 @@
 
     - name: Install required packages
       apt:
-        name: ['tightvncserver', 'xinit', 'xserver-xorg', 'gnome-tweaks', 'pavucontrol', 'xserver-xorg-legacy', 'ffmpeg', 'curl', 'alsa-utils', 'icewm', 'xdotool', 'xserver-xorg-video-dummy', 'ruby-hocon']
+        name: ['tightvncserver', 'xinit', 'xserver-xorg', 'gnome-tweaks', 'pavucontrol', 'xserver-xorg-legacy', 'ffmpeg', 'curl', 'alsa-utils', 'icewm', 'xdotool', 'xserver-xorg-video-dummy', 'ruby-hocon', 'figlet', 'xdg-utils']
         state: present
 
     - name: Select OpenJDK 8
@@ -558,6 +558,7 @@
         state: started
         enabled: yes
       tags: x11
+    ## FIX CHROMIUM - Try without snapd or fix snapd
 
 
 # - name: Recompile and deploy Jitsi VideoBridge2 JAR file
