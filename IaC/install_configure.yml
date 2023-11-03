@@ -1,6 +1,7 @@
 # apt install ansible
 # conda deactivate
 # Load the secrets environment variables
+# cd IaC
 # . secrets.env
 # ansible-playbook -i hosts install_configure.yml  --extra-vars "create_netplan_config=false" --user=ubuntu
 # ansible-playbook -i hosts install_configure.yml  --extra-vars "create_netplan_config=false" --start-at-task="Set Jicofo memory limit" --step --user=ubuntu
@@ -107,7 +108,7 @@
 
     - name: Install required packages
       apt:
-        name: ['tightvncserver', 'xinit', 'xserver-xorg', 'gnome-tweaks', 'pavucontrol', 'xserver-xorg-legacy', 'ffmpeg', 'curl', 'alsa-utils', 'icewm', 'xdotool', 'xserver-xorg-video-dummy', 'ruby-hocon', 'figlet', 'xdg-utils']
+        name: ['tightvncserver', 'xinit', 'xserver-xorg', 'gnome-tweaks', 'pavucontrol', 'xserver-xorg-legacy', 'ffmpeg', 'curl', 'alsa-utils', 'icewm', 'xdotool', 'xserver-xorg-video-dummy', 'ruby-hocon', 'figlet', 'xdg-utils', 'x11vnc', 'dbus-x11']
         state: present
 
     - name: Select OpenJDK 8
@@ -124,7 +125,7 @@
 
     - name: Install Chromium
       apt:
-        name: ['chromium-browser','chromium-chromedriver']
+        name: ['chromium']
         state: present
       notify:
         - Create Chrome policies directory
@@ -499,7 +500,7 @@
         shell: /bin/bash
         createhome: yes
         home: /home/pi
-        password: "{{ lookup('env', 'PI_PASSWORD') }}"
+        password: "{{ lookup('env', 'PI_PASSWORD') | password_hash('sha512') }}" # "{{ lookup('env', 'PI_PASSWORD') }}"
         groups: sudo, tty, adm, dialout, audio, video, plugdev, netdev, pulse-access, users, ssl-cert
         append: yes
     - name: Copy .xsessionrc file
@@ -510,11 +511,27 @@
         mode: '0644'
         owner: pi
         group: pi
-    - name: Copy VNC service file
+    - name: Copy .xinit file
       become: true
       copy:
-        src: files/system/vncserver.service
-        dest: /etc/systemd/system/vncserver.service
+        src: files/pi_user/xinitrc
+        dest: /home/pi/.xinitrc
+        mode: '0644'
+        owner: pi
+        group: pi
+    # - name: Copy VNC service file
+    #   become: true
+    #   copy:
+    #     src: files/system/vncserver.service
+    #     dest: /etc/systemd/system/vncserver.service
+    #     mode: '0644'
+    #     owner: root
+    #     group: root
+    - name: x11vnc service file
+      become: true
+      copy:
+        src: files/system/x11vnc.service
+        dest: /etc/systemd/system/x11vnc.service
         mode: '0644'
         owner: root
         group: root
@@ -528,12 +545,6 @@
         owner: pi
         group: pi
         mode: '0600'
-    - name: Enable VNC service
-      become: true
-      systemd:
-        name: vncserver
-        state: started
-        enabled: yes
     - name: Update Xwrapper.config
       become: true
       lineinfile:
@@ -558,6 +569,14 @@
         state: started
         enabled: yes
       tags: x11
+    - name: Enable x11vnc service
+      become: true
+      systemd:
+        name: x11vnc
+        state: started
+        enabled: yes
+      tags: x11
+
     ## FIX CHROMIUM - Try without snapd or fix snapd
 
 
