@@ -577,7 +577,11 @@
         enabled: yes
       tags: x11
 
-    ## FIX CHROMIUM - Try without snapd or fix snapd
+    ## FIX add 192.168.178.190 translation.sennsolutions.com to /etc/hosts
+    # Resolv Nov 03 23:06:05 translation prosody[941]: c2saaaaf9383eb0                                                              info        Client disconnected: connection closed
+    # Nov 03 23:06:06 translation prosody[941]: 2saaaaf9389320           info        Client connected
+    # Nov 03 23:06:06 translation prosody[941]: c2saaaaf9389320  warn No stream features to offer
+    # Make the MIC working
 
 
 # - name: Recompile and deploy Jitsi VideoBridge2 JAR file

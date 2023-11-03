@@ -32,9 +32,9 @@ logger "Pulse config"
 #sleep 30 # ADD to check when jitsi is ready
 pulseaudio -D -k -v --start # something is starting pulseaudio before this one. -k is needed to restart it
 
-pacmd load-module module-null-sink sink_name=recording sink_properties=device.description=recording &
-pacmd load-module module-combine-sink sink_name=combined sink_properties=device.description=combined slaves=recording,alsa_output.usb-Creative_Technology_Ltd_Sound_Blaster_Play__3_00252407-00.analog-stereo &
-pacmd load-module module-loopback source=alsa_input.usb-Creative_Technology_Ltd_Sound_Blaster_Play__3_00252407-00.analog-stereo sink=recording &
+#pacmd load-module module-null-sink sink_name=recording sink_properties=device.description=recording &
+#pacmd load-module module-combine-sink sink_name=combined sink_properties=device.description=combined slaves=recording,alsa_output.usb-Creative_Technology_Ltd_Sound_Blaster_Play__3_00252407-00.analog-stereo &
+#pacmd load-module module-loopback source=alsa_input.usb-Creative_Technology_Ltd_Sound_Blaster_Play__3_00252407-00.analog-stereo sink=recording &
 
 env > /home/pi/pa_list
 pactl list short sources >> /home/pi/pa_list
@@ -48,6 +48,5 @@ sleep 3
 sed -si 's/exit_type\":\"Crashed/exit_type\":\"none/' ~/.config/chromium/Default/Preferences
 
 echo "Start chromium Kiosk"
-#export DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus"
 /usr/bin/chromium  --app=http://localhost:5000 # --kiosk
 exec xterm
