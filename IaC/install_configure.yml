@@ -54,9 +54,11 @@
                 nameservers:
                   addresses: [127.0.0.1]
       when: create_netplan_config | default(false)
+      register: netplan_config_created
 
     - name: Apply netplan configuration
       command: netplan apply
+      when: netplan_config_created.changed
 
 - name: Install and configure software on Debian-based system
   hosts: all
@@ -122,6 +124,27 @@
         path: /etc/X11/Xwrapper.config
         regexp: '^allowed_users='
         line: 'allowed_users=anybody'
+        
+    - name: Ensure X11 xorg.conf.d directory exists
+      become: true
+      file:
+        path: /etc/X11/xorg.conf.d
+        state: directory
+
+    - name: Prevent screen from going blank
+      become: true
+      copy:
+        dest: /etc/X11/xorg.conf.d/10-monitor.conf
+        content: |
+          Section "ServerFlags"
+              Option "BlankTime" "0"
+              Option "StandbyTime" "0"
+              Option "SuspendTime" "0"
+              Option "OffTime" "0"
+          EndSection
+        owner: root
+        group: root
+        mode: '0644'
 
     - name: Install Chromium
       apt:
@@ -193,12 +216,12 @@
     - name: Set Jitsi Videobridge memory limit
       lineinfile:
         path: /etc/jitsi/videobridge/config
-        line: 'VIDEBRIDGE_MAX_MEMORY=1024m'
+        line: 'VIDEOBRIDGE_MAX_MEMORY="1024m"'
 
     - name: Set Jicofo memory limit
       lineinfile:
         path: /etc/jitsi/jicofo/config
-        line: 'JICOFO_MAX_MEMORY=1024m'
+        line: 'JICOFO_MAX_MEMORY="1024m"'
 
     - name: Create {{ jitsi_hostname }}-config.js
       become: true
@@ -352,6 +375,32 @@
         dest: /etc/prosody/conf.d/translation.sennsolutions.com.cfg.lua 
         state: link
 
+    - name: Copy the main Prosody configuration file
+      become: true
+      copy:
+        src:  files/prosody/prosody.cfg.lua
+        dest: /etc/prosody/prosody.cfg.lua 
+        mode: '0644'
+        owner: root
+        group: prosody
+
+    - name: Copy the auth.translation.sennsolutions.com auth files
+      become: true
+      copy:
+        src: files/prosody/var/lib/prosody/
+        dest: /var/lib/prosody
+        owner: prosody
+        group: prosody
+        mode: '0640'
+
+    - name: Copy tunserver.conf
+      become: true
+      copy:
+        src: files/turnserver/turnserver.conf
+        dest: /etc/turnserver.conf
+        owner: turnserver
+        group: root
+        mode: '0644'
     - name: Print variable
       debug:
         var: jitsi_fqdn
@@ -380,18 +429,19 @@
     - vars/main.yml
   become: true
   tasks:
-    - name: Coturn cert link to /etc/coturn/certs
-      become: true
-      file:
-        src:  /etc/ssl/{{ jitsi_fqdn }}.crt
-        dest: /etc/coturn/certs/{{ jitsi_fqdn }}.crt
-        state: link
-    - name: Coturn key link to /etc/coturn/certs
-      become: true
-      file:
-        src:  /etc/ssl/{{ jitsi_fqdn }}.key
-        dest: /etc/coturn/certs/{{ jitsi_fqdn }}.key
-        state: link
+    # Not in the working setup - NEEDED?
+    # - name: Coturn cert link to /etc/coturn/certs
+    #   become: true
+    #   file:
+    #     src:  /etc/ssl/{{ jitsi_fqdn }}.crt
+    #     dest: /etc/coturn/certs/{{ jitsi_fqdn }}.crt
+    #     state: link
+    # - name: Coturn key link to /etc/coturn/certs
+    #   become: true
+    #   file:
+    #     src:  /etc/ssl/{{ jitsi_fqdn }}.key
+    #     dest: /etc/coturn/certs/{{ jitsi_fqdn }}.key
+    #     state: link
     - name: Copy turnserver config
       become: true
       copy:
@@ -576,6 +626,8 @@
         state: started
         enabled: yes
       tags: x11
+
+    # systemd wait online fails
 
     ## FIX add 192.168.178.190 translation.sennsolutions.com to /etc/hosts
     # Resolv Nov 03 23:06:05 translation prosody[941]: c2saaaaf9383eb0                                                              info        Client disconnected: connection closed
