@@ -519,7 +519,7 @@ npm run build && scp -r build/* pi@translation.sennsolutions.com:/home/pi/transl
 
 cd /home/asurace/github/Raspberry-PI/Translation_System/misc/jitsi_gemeinde_backend
 scp -r ../jitsi_gemeinde_backend/ pi@translation.sennsolutions.com:/home/pi/translation_system/
-npm build
+npm run build
 # To run test
 npm start
 

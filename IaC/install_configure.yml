@@ -5,6 +5,7 @@
 # . secrets.env
 # ansible-playbook -i hosts install_configure.yml  --extra-vars "create_netplan_config=false" --user=ubuntu
 # ansible-playbook -i hosts install_configure.yml  --extra-vars "create_netplan_config=false" --start-at-task="Set Jicofo memory limit" --step --user=ubuntu
+# ansible-playbook -i hosts install_configure.yml  --extra-vars "create_netplan_config=false" --start-at-task "Copy the npm backend service"
 # ansible-playbook -i hosts install_configure.yml  --extra-vars "create_netplan_config=false" --tags "Recompiles Jitsi VideoBridge2 JAR file"
 
 # REMEMBER TO INSTALL THE LATEST ANSIBLE VERSION. OLDER ONES HAVE BUGS
@@ -16,6 +17,9 @@
 # sudo apt -y install software-properties-common
 # sudo apt-add-repository ppa:ansible/ansible
 # sudo apt install ansible ansible-lint
+
+# To enable the RPI to be able to download from home delete the default gateway
+# sudo ip r del default via 10.0.0.1 dev eth0
 
 ---
 - name: Configure network with netplan
@@ -110,7 +114,8 @@
 
     - name: Install required packages
       apt:
-        name: ['tightvncserver', 'xinit', 'xserver-xorg', 'gnome-tweaks', 'pavucontrol', 'xserver-xorg-legacy', 'ffmpeg', 'curl', 'alsa-utils', 'icewm', 'xdotool', 'xserver-xorg-video-dummy', 'ruby-hocon', 'figlet', 'xdg-utils', 'x11vnc', 'dbus-x11']
+        name: ['tightvncserver', 'xinit', 'xserver-xorg', 'gnome-tweaks', 'pavucontrol', 'xserver-xorg-legacy', 'ffmpeg', 'curl', 'alsa-utils', 'icewm', 'xdotool', 'xserver-xorg-video-dummy', 'ruby-hocon', 'figlet', 'xdg-utils', 'x11vnc', 'dbus-x11', 'acl']
+        # acl is needed to set proper file permissions and make ansible happy
         state: present
 
     - name: Select OpenJDK 8
@@ -626,6 +631,102 @@
         state: started
         enabled: yes
       tags: x11
+    - name: Copy the npm backend service
+      become: true
+      copy:
+        src: files/app/backend/
+        dest: /home/pi/jitsi_gemeinde_backend
+        mode: '0644'
+        owner: pi
+        group: pi
+      tags: service_backend
+    - name: Copy the React frontend
+      become: true
+      copy:
+        src: files/app/frontend/
+        dest: /home/pi/jitsi_gemeinde_frontend
+        mode: '0644'
+        owner: pi
+        group: pi
+      tags: service_frontend
+      # build and npm and start the service
+    # install nvm via a curl command for the user pi
+    - name: Install nvm
+      # run as pi
+      become: true
+      become_user: pi
+      shell: |
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
+      args:
+        chdir: /home/pi
+        executable: /bin/bash
+        creates: /home/pi/.nvm
+      tags: service_frontend
+    # install node 18.15.0 via nvm
+    - name: Install node 18.15.0
+      become: true
+      become_user: pi
+      shell: |
+        source /home/pi/.nvm/nvm.sh
+        nvm install 18.15.0
+      args:
+        chdir: /home/pi
+        executable: /bin/bash
+        creates: /home/pi/.nvm/versions/node/v18.15.0
+      tags: service_frontend
+    - name: backend npm build
+      become: true
+      become_user: pi
+      shell: |
+        source /home/pi/.nvm/nvm.sh
+        cd /home/pi/jitsi_gemeinde_backend
+        npm run build
+      args:
+        chdir: /home/pi
+        executable: /bin/bash
+      tags: service_backend
+    # - name: Create a file link to the build directory
+    #   become: true
+    #   become_user: pi
+    #   file:
+    #     path: /home/pi/jitsi_gemeinde_frontend/build
+    #     state: link
+    #     src: /home/pi/jitsi_gemeinde_backend/build
+    - name: frontend npm build
+      become: true
+      become_user: pi
+      shell: |
+        source /home/pi/.nvm/nvm.sh
+        cd /home/pi/jitsi_gemeinde_frontend
+        npm run build
+      args:
+        chdir: /home/pi
+        executable: /bin/bash
+      tags: service_frontend
+    - name: Create an .env file for the frontend
+      become: true
+      become_user: pi
+      copy:
+        src: files/app/frontend/.env
+        dest: /home/pi/jitsi_gemeinde_frontend/.env
+        mode: '0644'
+        owner: pi
+        group: pi
+      tags: service_frontend
+    - name: run frontend
+      become: true
+      become_user: pi
+      shell: |
+        source /home/pi/.nvm/nvm.sh
+        cd /home/pi/jitsi_gemeinde_frontend
+        npm start
+      args:
+        chdir: /home/pi
+        executable: /bin/bash
+      tags: service_frontend
+    # how to allow the microphone to work for a specific by default in Chrome
+    # https://stackoverflow.com/questions/60416298/how-to-allow-microphone-access-in-chrome-for-a-specific-site-by-default
+    # Build the frontend
 
     # systemd wait online fails
 

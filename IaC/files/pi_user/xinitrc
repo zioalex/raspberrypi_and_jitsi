@@ -48,5 +48,5 @@ sleep 3
 sed -si 's/exit_type\":\"Crashed/exit_type\":\"none/' ~/.config/chromium/Default/Preferences
 
 echo "Start chromium Kiosk"
-/usr/bin/chromium  --app=http://localhost:5000 # --kiosk
+/usr/bin/chromium  --app=http://localhost:3000 # --kiosk
 exec xterm
