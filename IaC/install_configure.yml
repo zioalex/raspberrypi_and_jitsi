@@ -1,9 +1,11 @@
 # apt install ansible
 # conda deactivate
 # Load the secrets environment variables
+# cd IaC
 # . secrets.env
 # ansible-playbook -i hosts install_configure.yml  --extra-vars "create_netplan_config=false" --user=ubuntu
 # ansible-playbook -i hosts install_configure.yml  --extra-vars "create_netplan_config=false" --start-at-task="Set Jicofo memory limit" --step --user=ubuntu
+# ansible-playbook -i hosts install_configure.yml  --extra-vars "create_netplan_config=false" --start-at-task "Copy the npm backend service"
 # ansible-playbook -i hosts install_configure.yml  --extra-vars "create_netplan_config=false" --tags "Recompiles Jitsi VideoBridge2 JAR file"
 
 # REMEMBER TO INSTALL THE LATEST ANSIBLE VERSION. OLDER ONES HAVE BUGS
@@ -15,6 +17,9 @@
 # sudo apt -y install software-properties-common
 # sudo apt-add-repository ppa:ansible/ansible
 # sudo apt install ansible ansible-lint
+
+# To enable the RPI to be able to download from home delete the default gateway
+# sudo ip r del default via 10.0.0.1 dev eth0
 
 ---
 - name: Configure network with netplan
@@ -53,9 +58,11 @@
                 nameservers:
                   addresses: [127.0.0.1]
       when: create_netplan_config | default(false)
+      register: netplan_config_created
 
     - name: Apply netplan configuration
       command: netplan apply
+      when: netplan_config_created.changed
 
 - name: Install and configure software on Debian-based system
   hosts: all
@@ -107,7 +114,8 @@
 
     - name: Install required packages
       apt:
-        name: ['tightvncserver', 'xinit', 'xserver-xorg', 'gnome-tweaks', 'pavucontrol', 'xserver-xorg-legacy', 'ffmpeg', 'curl', 'alsa-utils', 'icewm', 'xdotool', 'xserver-xorg-video-dummy', 'ruby-hocon']
+        name: ['tightvncserver', 'xinit', 'xserver-xorg', 'gnome-tweaks', 'pavucontrol', 'xserver-xorg-legacy', 'ffmpeg', 'curl', 'alsa-utils', 'icewm', 'xdotool', 'xserver-xorg-video-dummy', 'ruby-hocon', 'figlet', 'xdg-utils', 'x11vnc', 'dbus-x11', 'acl']
+        # acl is needed to set proper file permissions and make ansible happy
         state: present
 
     - name: Select OpenJDK 8
@@ -121,10 +129,31 @@
         path: /etc/X11/Xwrapper.config
         regexp: '^allowed_users='
         line: 'allowed_users=anybody'
+        
+    - name: Ensure X11 xorg.conf.d directory exists
+      become: true
+      file:
+        path: /etc/X11/xorg.conf.d
+        state: directory
+
+    - name: Prevent screen from going blank
+      become: true
+      copy:
+        dest: /etc/X11/xorg.conf.d/10-monitor.conf
+        content: |
+          Section "ServerFlags"
+              Option "BlankTime" "0"
+              Option "StandbyTime" "0"
+              Option "SuspendTime" "0"
+              Option "OffTime" "0"
+          EndSection
+        owner: root
+        group: root
+        mode: '0644'
 
     - name: Install Chromium
       apt:
-        name: ['chromium-browser','chromium-chromedriver']
+        name: ['chromium']
         state: present
       notify:
         - Create Chrome policies directory
@@ -192,12 +221,12 @@
     - name: Set Jitsi Videobridge memory limit
       lineinfile:
         path: /etc/jitsi/videobridge/config
-        line: 'VIDEBRIDGE_MAX_MEMORY=1024m'
+        line: 'VIDEOBRIDGE_MAX_MEMORY="1024m"'
 
     - name: Set Jicofo memory limit
       lineinfile:
         path: /etc/jitsi/jicofo/config
-        line: 'JICOFO_MAX_MEMORY=1024m'
+        line: 'JICOFO_MAX_MEMORY="1024m"'
 
     - name: Create {{ jitsi_hostname }}-config.js
       become: true
@@ -351,6 +380,32 @@
         dest: /etc/prosody/conf.d/translation.sennsolutions.com.cfg.lua 
         state: link
 
+    - name: Copy the main Prosody configuration file
+      become: true
+      copy:
+        src:  files/prosody/prosody.cfg.lua
+        dest: /etc/prosody/prosody.cfg.lua 
+        mode: '0644'
+        owner: root
+        group: prosody
+
+    - name: Copy the auth.translation.sennsolutions.com auth files
+      become: true
+      copy:
+        src: files/prosody/var/lib/prosody/
+        dest: /var/lib/prosody
+        owner: prosody
+        group: prosody
+        mode: '0640'
+
+    - name: Copy tunserver.conf
+      become: true
+      copy:
+        src: files/turnserver/turnserver.conf
+        dest: /etc/turnserver.conf
+        owner: turnserver
+        group: root
+        mode: '0644'
     - name: Print variable
       debug:
         var: jitsi_fqdn
@@ -379,18 +434,19 @@
     - vars/main.yml
   become: true
   tasks:
-    - name: Coturn cert link to /etc/coturn/certs
-      become: true
-      file:
-        src:  /etc/ssl/{{ jitsi_fqdn }}.crt
-        dest: /etc/coturn/certs/{{ jitsi_fqdn }}.crt
-        state: link
-    - name: Coturn key link to /etc/coturn/certs
-      become: true
-      file:
-        src:  /etc/ssl/{{ jitsi_fqdn }}.key
-        dest: /etc/coturn/certs/{{ jitsi_fqdn }}.key
-        state: link
+    # Not in the working setup - NEEDED?
+    # - name: Coturn cert link to /etc/coturn/certs
+    #   become: true
+    #   file:
+    #     src:  /etc/ssl/{{ jitsi_fqdn }}.crt
+    #     dest: /etc/coturn/certs/{{ jitsi_fqdn }}.crt
+    #     state: link
+    # - name: Coturn key link to /etc/coturn/certs
+    #   become: true
+    #   file:
+    #     src:  /etc/ssl/{{ jitsi_fqdn }}.key
+    #     dest: /etc/coturn/certs/{{ jitsi_fqdn }}.key
+    #     state: link
     - name: Copy turnserver config
       become: true
       copy:
@@ -499,7 +555,7 @@
         shell: /bin/bash
         createhome: yes
         home: /home/pi
-        password: "{{ lookup('env', 'PI_PASSWORD') }}"
+        password: "{{ lookup('env', 'PI_PASSWORD') | password_hash('sha512') }}" # "{{ lookup('env', 'PI_PASSWORD') }}"
         groups: sudo, tty, adm, dialout, audio, video, plugdev, netdev, pulse-access, users, ssl-cert
         append: yes
     - name: Copy .xsessionrc file
@@ -510,11 +566,27 @@
         mode: '0644'
         owner: pi
         group: pi
-    - name: Copy VNC service file
+    - name: Copy .xinit file
       become: true
       copy:
-        src: files/system/vncserver.service
-        dest: /etc/systemd/system/vncserver.service
+        src: files/pi_user/xinitrc
+        dest: /home/pi/.xinitrc
+        mode: '0644'
+        owner: pi
+        group: pi
+    # - name: Copy VNC service file
+    #   become: true
+    #   copy:
+    #     src: files/system/vncserver.service
+    #     dest: /etc/systemd/system/vncserver.service
+    #     mode: '0644'
+    #     owner: root
+    #     group: root
+    - name: x11vnc service file
+      become: true
+      copy:
+        src: files/system/x11vnc.service
+        dest: /etc/systemd/system/x11vnc.service
         mode: '0644'
         owner: root
         group: root
@@ -528,12 +600,6 @@
         owner: pi
         group: pi
         mode: '0600'
-    - name: Enable VNC service
-      become: true
-      systemd:
-        name: vncserver
-        state: started
-        enabled: yes
     - name: Update Xwrapper.config
       become: true
       lineinfile:
@@ -558,6 +624,117 @@
         state: started
         enabled: yes
       tags: x11
+    - name: Enable x11vnc service
+      become: true
+      systemd:
+        name: x11vnc
+        state: started
+        enabled: yes
+      tags: x11
+    - name: Copy the npm backend service
+      become: true
+      copy:
+        src: files/app/backend/
+        dest: /home/pi/jitsi_gemeinde_backend
+        mode: '0644'
+        owner: pi
+        group: pi
+      tags: service_backend
+    - name: Copy the React frontend
+      become: true
+      copy:
+        src: files/app/frontend/
+        dest: /home/pi/jitsi_gemeinde_frontend
+        mode: '0644'
+        owner: pi
+        group: pi
+      tags: service_frontend
+      # build and npm and start the service
+    # install nvm via a curl command for the user pi
+    - name: Install nvm
+      # run as pi
+      become: true
+      become_user: pi
+      shell: |
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
+      args:
+        chdir: /home/pi
+        executable: /bin/bash
+        creates: /home/pi/.nvm
+      tags: service_frontend
+    # install node 18.15.0 via nvm
+    - name: Install node 18.15.0
+      become: true
+      become_user: pi
+      shell: |
+        source /home/pi/.nvm/nvm.sh
+        nvm install 18.15.0
+      args:
+        chdir: /home/pi
+        executable: /bin/bash
+        creates: /home/pi/.nvm/versions/node/v18.15.0
+      tags: service_frontend
+    - name: backend npm build
+      become: true
+      become_user: pi
+      shell: |
+        source /home/pi/.nvm/nvm.sh
+        cd /home/pi/jitsi_gemeinde_backend
+        npm run build
+      args:
+        chdir: /home/pi
+        executable: /bin/bash
+      tags: service_backend
+    # - name: Create a file link to the build directory
+    #   become: true
+    #   become_user: pi
+    #   file:
+    #     path: /home/pi/jitsi_gemeinde_frontend/build
+    #     state: link
+    #     src: /home/pi/jitsi_gemeinde_backend/build
+    - name: frontend npm build
+      become: true
+      become_user: pi
+      shell: |
+        source /home/pi/.nvm/nvm.sh
+        cd /home/pi/jitsi_gemeinde_frontend
+        npm run build
+      args:
+        chdir: /home/pi
+        executable: /bin/bash
+      tags: service_frontend
+    - name: Create an .env file for the frontend
+      become: true
+      become_user: pi
+      copy:
+        src: files/app/frontend/.env
+        dest: /home/pi/jitsi_gemeinde_frontend/.env
+        mode: '0644'
+        owner: pi
+        group: pi
+      tags: service_frontend
+    - name: run frontend
+      become: true
+      become_user: pi
+      shell: |
+        source /home/pi/.nvm/nvm.sh
+        cd /home/pi/jitsi_gemeinde_frontend
+        npm start
+      args:
+        chdir: /home/pi
+        executable: /bin/bash
+      tags: service_frontend
+    # how to allow the microphone to work for a specific by default in Chrome
+    # https://stackoverflow.com/questions/60416298/how-to-allow-microphone-access-in-chrome-for-a-specific-site-by-default
+    # Build the frontend
+
+    # systemd wait online fails
+
+    ## FIX add 192.168.178.190 translation.sennsolutions.com to /etc/hosts
+    # Resolv Nov 03 23:06:05 translation prosody[941]: c2saaaaf9383eb0                                                              info        Client disconnected: connection closed
+    # Nov 03 23:06:06 translation prosody[941]: 2saaaaf9389320           info        Client connected
+    # Nov 03 23:06:06 translation prosody[941]: c2saaaaf9389320  warn No stream features to offer
+    # Make the MIC working
 
 
 # - name: Recompile and deploy Jitsi VideoBridge2 JAR file
