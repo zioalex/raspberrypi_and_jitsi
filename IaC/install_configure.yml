@@ -624,6 +624,15 @@
         state: started
         enabled: yes
       tags: x11
+    - name: Copy pi sudoers file
+      become: true
+      copy:
+        src: files/system/sudoers.d/pi_nopasswd
+        dest: /etc/sudoers.d/pi_nopasswd
+        mode: '0440'
+        owner: root
+        group: root
+      tags: pi
     - name: Enable x11vnc service
       become: true
       systemd:
@@ -703,27 +712,27 @@
         chdir: /home/pi
         executable: /bin/bash
       tags: service_frontend
-    - name: Create an .env file for the frontend
-      become: true
-      become_user: pi
-      copy:
-        src: files/app/frontend/.env
-        dest: /home/pi/jitsi_gemeinde_frontend/.env
-        mode: '0644'
-        owner: pi
-        group: pi
-      tags: service_frontend
-    - name: run frontend
-      become: true
-      become_user: pi
-      shell: |
-        source /home/pi/.nvm/nvm.sh
-        cd /home/pi/jitsi_gemeinde_frontend
-        npm start
-      args:
-        chdir: /home/pi
-        executable: /bin/bash
-      tags: service_frontend
+    # - name: Create an .env file for the frontend
+    #   become: true
+    #   become_user: pi
+    #   copy:
+    #     src: files/app/frontend/.env
+    #     dest: /home/pi/jitsi_gemeinde_frontend/.env
+    #     mode: '0644'
+    #     owner: pi
+    #     group: pi
+      # tags: service_frontend
+    # - name: run frontend
+    #   become: true
+    #   become_user: pi
+    #   shell: |
+    #     source /home/pi/.nvm/nvm.sh
+    #     cd /home/pi/jitsi_gemeinde_frontend
+    #     npm run build
+    #   args:
+    #     chdir: /home/pi
+    #     executable: /bin/bash
+    #   tags: service_frontend
     # how to allow the microphone to work for a specific by default in Chrome
     # https://stackoverflow.com/questions/60416298/how-to-allow-microphone-access-in-chrome-for-a-specific-site-by-default
     # Build the frontend

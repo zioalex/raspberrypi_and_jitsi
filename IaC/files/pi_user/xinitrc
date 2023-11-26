@@ -40,7 +40,7 @@ env > /home/pi/pa_list
 pactl list short sources >> /home/pi/pa_list
 
 echo "Start the Backend app"
-cd /home/pi/translation_system/jitsi_gemeinde_backend
+cd /home/pi/jitsi_gemeinde_backend
 npm start &
 sleep 3
 
@@ -48,5 +48,5 @@ sleep 3
 sed -si 's/exit_type\":\"Crashed/exit_type\":\"none/' ~/.config/chromium/Default/Preferences
 
 echo "Start chromium Kiosk"
-/usr/bin/chromium  --app=http://localhost:3000 # --kiosk
+/usr/bin/chromium  --app=http://localhost:5000 # --kiosk
 exec xterm
