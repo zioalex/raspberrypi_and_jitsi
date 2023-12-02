@@ -1,3 +1,1 @@
-# create a sudoers file to neable the user pi to shutdown or restart the system
-
 pi ALL=(ALL) NOPASSWD: /sbin/reboot, /sbin/shutdown, /sbin/poweroff, /sbin/halt
