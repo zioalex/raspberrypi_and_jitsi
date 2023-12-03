@@ -1,0 +1,166 @@
+- name: Create {{ user_name }} user
+  user:
+    name: "{{ user_name }}"
+    shell: /bin/bash
+    createhome: yes
+    home: /home/{{ user_name }}
+    password: "{{ lookup('env', 'PI_PASSWORD') | password_hash('sha512') }}" # "{{ lookup('env', 'PI_PASSWORD') }}"
+    groups: sudo, tty, adm, dialout, audio, video, plugdev, netdev, pulse-access, users, ssl-cert
+    append: yes
+- name: "Copy {{ user_name }} .xsessionrc file"
+  become: true
+  copy:
+    src: files/pi_user/xsessionrc
+    dest: /home/{{ user_name }}/.xsessionrc
+    mode: '0644'
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+- name: "Copy {{ user_name }} .xinit file"
+  become: true
+  copy:
+    src: files/pi_user/xinitrc
+    dest: /home/{{ user_name }}/.xinitrc
+    mode: '0644'
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+# - name: Copy VNC service file
+#   become: true
+#   copy:
+#     src: files/system/vncserver.service
+#     dest: /etc/systemd/system/vncserver.service
+#     mode: '0644'
+#     owner: root
+#     group: root
+- name: "{{ user_name }} x11vnc service file"
+  become: true
+  copy:
+    src: files/system/x11vnc.service
+    dest: /etc/systemd/system/x11vnc_"{{ user_name }}".service
+    mode: '0644'
+    owner: root
+    group: root
+- name: "{{ user_name}} .vnc directory"
+  become: true
+  file:
+    path: /home/{{ user_name }}/.vnc
+    state: directory
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+    mode: '0755'
+- name: "{{ user_name }} Create VNC password"
+  become: true
+  shell: echo "{{ lookup('env', 'VNC_PASSWORD') }}" | vncpasswd  -f  > /home/{{ user_name }}/.vnc/passwd
+- name: Set VNC password owner
+  become: true
+  file:
+    path: /home/{{ user_name }}/.vnc/passwd
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+    mode: '0600'
+- name: "Create {{ user_name }}_session service"
+  become: true
+  copy:
+    src: files/system/pi_session.service
+    dest: /etc/systemd/system/{{ user_name }}_session.service
+    mode: '0644'
+    owner: root
+    group: root
+  tags: x11
+- name: "Enable {{ user_name }}_session service"
+  become: true
+  systemd:
+    name: "{{ user_name }}_session"
+    state: started
+    enabled: yes
+  tags: x11
+- name: "Copy {{ user_name }} sudoers file"
+  become: true
+  copy:
+    src: files/system/sudoers.d/pi_nopasswd
+    dest: /etc/sudoers.d/{{ user_name }}_nopasswd
+    mode: '0440'
+    owner: root
+    group: root
+  tags: sudoers
+- name: "{{ user_name }} Enable x11vnc service"
+  become: true
+  systemd:
+    name: x11vnc
+    state: started
+    enabled: yes
+  tags: x11
+- name: "{{ user_name }} Copy the npm backend service"
+  become: true
+  copy:
+    src: files/app/backend/
+    dest: /home/{{ user_name }}/jitsi_gemeinde_backend
+    mode: '0644'
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+  tags: service_backend
+- name: "{{ user_name }} Copy the React frontend"
+  become: true
+  copy:
+    src: files/app/frontend/
+    dest: /home/{{ user_name }}/jitsi_gemeinde_frontend
+    mode: '0644'
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+  tags: service_frontend
+  # build and npm and start the service
+# install nvm via a curl command for the user pi
+- name: "{{ user_name }} Install nvm"
+  # run as pi
+  become: true
+  become_user: "{{ user_name }}"
+  shell: |
+    id > /home/{{ user_name }}/id.txt
+    echo "Installing nvm"
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
+  args:
+    chdir: /home/{{ user_name }}
+    executable: /bin/bash
+    creates: /home/{{ user_name }}/.nvm # If .nvm exists, the command will not run
+    # warn: false
+  tags: service_frontend
+# install node 18.15.0 via nvm
+- name: "{{ user_name }} Install node 18.15.0"
+  become: true
+  become_user: "{{ user_name }}"
+  shell: |
+    source /home/{{ user_name }}/.nvm/nvm.sh
+    nvm install 18.15.0
+  args:
+    chdir: /home/{{ user_name }}
+    executable: /bin/bash
+    creates: /home/{{ user_name }}/.nvm/versions/node/v18.15.0
+  tags: service_frontend
+- name: "{{ user_name }} backend npm build"
+  become: true
+  become_user: "{{ user_name }}"
+  shell: |
+    source /home/{{ user_name }}/.nvm/nvm.sh
+    cd /home/{{ user_name }}/jitsi_gemeinde_backend
+    npm run build
+  args:
+    chdir: /home/{{ user_name }}
+    executable: /bin/bash
+  tags: service_backend
+# - name: Create a file link to the build directory
+#   become: true
+#   become_user: pi
+#   file:
+#     path: /home/pi/jitsi_gemeinde_frontend/build
+#     state: link
+#     src: /home/pi/jitsi_gemeinde_backend/build
+- name: "{{ user_name }} frontend npm build"
+  become: true
+  become_user: "{{ user_name }}"
+  shell: |
+    source /home/{{ user_name }}/.nvm/nvm.sh
+    cd /home/{{ user_name }}/jitsi_gemeinde_frontend
+    npm run build
+  args:
+    chdir: /home/{{ user_name }}
+    executable: /bin/bash
+  tags: service_frontend

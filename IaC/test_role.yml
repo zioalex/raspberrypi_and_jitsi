@@ -1,0 +1,6 @@
+# ansible-playbook -i hosts test_role.yml
+   - hosts: all
+     become: true
+     roles:
+     # pass the variable user_name to the role
+      - { role: translator_user, user_name: 'lang1' }

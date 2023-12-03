@@ -546,7 +546,17 @@
 # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/user_module.html
 # https://docs.ansible.com/ansible/latest/collections/ansible/builtin/group_module.html
 
+    - name: Update Xwrapper.config
+      become: true
+      lineinfile:
+        path: /etc/X11/Xwrapper.config
+        regexp: "^#?allowed_users="
+        line: "allowed_users=anybody"
+        state: present
+      tags: x11
 
+
+#################### Migrated to role translator_user
 - name: Configure VNC and start X11
   tags: 
     - Installs_and_configures_VNC
@@ -606,14 +616,7 @@
         owner: pi
         group: pi
         mode: '0600'
-    - name: Update Xwrapper.config
-      become: true
-      lineinfile:
-        path: /etc/X11/Xwrapper.config
-        regexp: "^#?allowed_users="
-        line: "allowed_users=anybody"
-        state: present
-      tags: x11
+
     - name: Create pi_session service
       become: true
       copy:
@@ -718,6 +721,12 @@
         chdir: /home/pi
         executable: /bin/bash
       tags: service_frontend
+
+
+#################### End Migrated to role translator_user
+
+
+
     # - name: Create an .env file for the frontend
     #   become: true
     #   become_user: pi
