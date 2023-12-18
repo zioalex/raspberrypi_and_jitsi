@@ -37,6 +37,20 @@ app.get('/reboot', (req, res) => {
 });
 });
 
+app.get('/status', (req, res) => {
+// just show the status of the system
+  exec('uptime', (error, stdout, stderr) => {
+    if (error) {
+      console.error(`exec error: ${error}`);
+      res.status(500).send('Error getting status');
+      return;
+    }
+    console.log(`stdout: ${stdout}`);
+    console.error(`stderr: ${stderr}`);
+    res.send(stdout);
+});
+});  
+
 // All other GET requests not handled before will return our React app
 app.get('*', (req, res) => {
   res.sendFile(path.resolve(__dirname, '../../jitsi_gemeinde_frontend/build', 'index.html'));

@@ -1,0 +1,6 @@
+# ansible-playbook -i hosts backend_role.yml
+   - hosts: all
+     become: true
+     roles:
+     # pass the variable user_name to the role
+      - { role: gemeinde_backend, user_name: 'pi' }

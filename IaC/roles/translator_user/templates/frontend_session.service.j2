@@ -1,0 +1,13 @@
+[Unit]
+Description=X for {{ user_name }}
+After=vncserver.service
+
+[Service]
+Type=simple
+User={{ user_name }}
+Group={{ user_name }}
+Restart=always
+ExecStart=/usr/bin/startx
+
+[Install]
+WantedBy=multi-user.target

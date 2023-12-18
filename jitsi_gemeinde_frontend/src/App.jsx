@@ -85,8 +85,9 @@ import "./style.css";
         alert('Ready to close...');
     };
 
+    
     //const generateRoomName = () => `JitsiMeetRoomNo${Math.random() * 100}-${Date.now()}`;
-    const generateRoomName = () => `ukr`;
+    const generateRoomName = () => process.env.REACT_APP_LANG; // Take this on runtime `ukr`;
 
     // Multiple instances demo
     const renderNewInstance = () => {

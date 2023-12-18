@@ -2,7 +2,7 @@
 set -x
 exec 3>&1 4>&2
 trap 'exec 2>&4 1>&3' 0 1 2 3
-exec 1>/tmp/xinitrc.out 2>&1
+exec 1>/tmp/xinitrc_${USER}.out 2>&1
 
 # Start the D-Bus session
 if test -z "$DBUS_SESSION_BUS_ADDRESS" ; then

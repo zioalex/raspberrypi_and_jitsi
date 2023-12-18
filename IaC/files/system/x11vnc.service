@@ -8,6 +8,7 @@ StartLimitIntervalSec=0
 User=pi
 PIDFile=/home/pi/.vnc/%H:0.pid
 ExecStart=/usr/bin/x11vnc -forever -nevershared -display :0
+# -forever -nevershared -create
 ExecStop=pkill x11vnc
 Restart=always
 RestartSec=3
