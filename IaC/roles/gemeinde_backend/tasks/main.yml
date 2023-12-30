@@ -43,7 +43,7 @@
     chdir: "/home/{{ user_name }}"
     executable: /bin/bash
     creates: "/home/{{ user_name }}/.nvm"
-  tags: service_frontend
+  tags: service_backend
 
 - name: Install node 18.15.0
   become: true
@@ -55,7 +55,7 @@
     chdir: "/home/{{ user_name }}"
     executable: /bin/bash
     creates: "/home/{{ user_name }}/.nvm/versions/node/v18.15.0"
-  tags: service_frontend
+  tags: service_backend
 
 - name: "{{ user_name }} backend npm start"
   become: true
@@ -68,3 +68,28 @@
     chdir: "/home/{{ user_name }}"
     executable: /bin/bash
   tags: service_backend
+- name: Create Backend systemd service file
+  become: true
+  copy:
+    dest: /etc/systemd/system/{{ user_name }}-backend.service
+    content: |
+      [Unit]
+      Description={{ user_name }} backend service
+      After=network.target
+
+      [Service]
+      User={{ user_name }}
+      WorkingDirectory=/home/{{ user_name }}/jitsi_gemeinde_backend
+      ExecStart=npm run startbg
+      Environment=PATH=/home/{{ user_name }}/.nvm/versions/node/v18.15.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      Restart=always
+
+      [Install]
+      WantedBy=multi-user.target
+  notify: restart {{ user_name }}-backend
+- name: Start and enable service
+  become: true
+  systemd:
+    name: "{{ user_name }}-backend"
+    state: started
+    enabled: yes
