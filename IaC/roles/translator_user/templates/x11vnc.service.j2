@@ -6,9 +6,7 @@ After=multi-user.target
 Type=simple
 User={{ user_name }}
 PIDFile=/home/{{ user_name }}/.vnc/%H:0.pid
-ExecStart=/usr/bin/x11vnc -forever -nevershared {% if main_user is defined and main_user == true %}-display :0 -auth .Xauthority{% else %}-create
-Environment="X11VNC_SKIP_DISPLAY=0"
-{% endif %}
+ExecStart=/usr/bin/x11vnc -forever -nevershared -display :{{ display_number }} -auth .Xauthority
 
 ExecStop=kill $(cat /home/{{ user_name }}/.vnc/%H:0.pid)
 Restart=always

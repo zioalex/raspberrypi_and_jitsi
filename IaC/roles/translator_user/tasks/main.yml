@@ -74,7 +74,7 @@
     owner: root
     group: root
   tags: x11
-  when: main_user is defined and main_user == true
+  # when: main_user is defined and main_user == true
 # - name: "{{ user_name }} Copy the npm backend service"
 #   become: true
 #   copy:

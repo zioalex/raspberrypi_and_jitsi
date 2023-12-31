@@ -7,7 +7,7 @@ Type=simple
 User={{ user_name }}
 Group={{ user_name }}
 Restart=always
-ExecStart=/usr/bin/startx
+ExecStart=/usr/bin/startx -- :{{ display_number }}
 
 [Install]
 WantedBy=multi-user.target

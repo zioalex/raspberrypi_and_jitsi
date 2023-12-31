@@ -4,8 +4,8 @@
      roles:
      # pass the variable user_name to the role
       - { role: gemeinde_backend, user_name: 'pi' }
-      - { role: translator_user, user_name: 'lang1', main_user: true , jitsi_channel: 'ukr', frontend_port: 3000} # This is the main user and it will displayed on the Raspberry Pi Display
-      - { role: translator_user, user_name: 'lang2', jitsi_channel: 'eng', frontend_port: 3001 } # All the other users are accessible via VNC and Web service at the port XXX
+      - { role: translator_user, user_name: 'lang1', main_user: true , jitsi_channel: 'ukr', frontend_port: 3000, display_number: '0'} # This is the main user and it will displayed on the Raspberry Pi Display
+      - { role: translator_user, user_name: 'lang2', jitsi_channel: 'eng', frontend_port: 3001, display_number: '1' } # All the other users are accessible via VNC and Web service at the port XXX
      handlers:
       - name: "restart {{ user_name }}-react-frontend"
         become: true
