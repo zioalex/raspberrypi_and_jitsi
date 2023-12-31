@@ -114,7 +114,7 @@
 
     - name: Install required packages
       apt:
-        name: ['tightvncserver', 'xinit', 'xserver-xorg', 'gnome-tweaks', 'pavucontrol', 'xserver-xorg-legacy', 'ffmpeg', 'curl', 'alsa-utils', 'icewm', 'xdotool', 'xserver-xorg-video-dummy', 'ruby-hocon', 'figlet', 'xdg-utils', 'x11vnc', 'dbus-x11', 'acl', 'xvfb']
+        name: ['tightvncserver', 'xinit', 'xserver-xorg', 'gnome-tweaks', 'pavucontrol', 'xserver-xorg-legacy', 'ffmpeg', 'curl', 'alsa-utils', 'icewm', 'xdotool', 'xserver-xorg-video-dummy', 'ruby-hocon', 'figlet', 'xdg-utils', 'x11vnc', 'dbus-x11', 'acl', 'xvfb', 'xsel']
         # acl is needed to set proper file permissions and make ansible happy
         # xvfb needed to make x11vnc able to create a virtual display
         state: present

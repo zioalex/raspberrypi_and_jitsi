@@ -56,7 +56,17 @@
     executable: /bin/bash
     creates: "/home/{{ user_name }}/.nvm/versions/node/v18.15.0"
   tags: service_backend
-
+- name: "{{ user_name }} backend npm install"
+  become: true
+  become_user: "{{ user_name }}"
+  shell: |
+    source /home/{{ user_name }}/.nvm/nvm.sh
+    cd /home/{{ user_name }}/jitsi_gemeinde_backend
+    npm install
+  args:
+    chdir: "/home/{{ user_name }}"
+    executable: /bin/bash
+  tags: service_backend
 - name: "{{ user_name }} backend npm start"
   become: true
   become_user: "{{ user_name }}"
@@ -78,11 +88,12 @@
       After=network.target
 
       [Service]
+      Type=forking
       User={{ user_name }}
       WorkingDirectory=/home/{{ user_name }}/jitsi_gemeinde_backend
-      ExecStart=npm run startbg
+      ExecStart=/home/{{ user_name }}/.nvm/versions/node/v18.15.0/bin/npm run startbg
       Environment=PATH=/home/{{ user_name }}/.nvm/versions/node/v18.15.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-      Restart=always
+      Restart=on-failure
 
       [Install]
       WantedBy=multi-user.target

@@ -17,10 +17,11 @@
   },  
   "scripts": {
     "start": "REACT_APP_LANG={{ jitsi_channel }} react-scripts start",
-    "build": "react-scripts build",
+    "build": "REACT_APP_LANG={{ jitsi_channel }} react-scripts build",
     "buildCompr": "react-scripts build && compress-cra",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "startBg": "serve -s build"
   },
   "eslintConfig": {
     "extends": [

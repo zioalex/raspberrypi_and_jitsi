@@ -18,8 +18,8 @@
     group: "{{ user_name }}"
 - name: "Copy {{ user_name }} .xinit file"
   become: true
-  copy:
-    src: files/pi_user/xinitrc
+  template:
+    src: xinitrc.j2
     dest: /home/{{ user_name }}/.xinitrc
     mode: '0644'
     owner: "{{ user_name }}"
@@ -143,6 +143,17 @@
 #     path: /home/pi/jitsi_gemeinde_frontend/build
 #     state: link
 #     src: /home/pi/jitsi_gemeinde_backend/build
+- name: "{{ user_name }} frontend npm install"
+  become: true
+  become_user: "{{ user_name }}"
+  shell: |
+    source /home/{{ user_name }}/.nvm/nvm.sh
+    cd /home/{{ user_name }}/jitsi_gemeinde_frontend
+    npm install
+  args:
+    chdir: "/home/{{ user_name }}"
+    executable: /bin/bash
+  tags: service_frontend
 - name: "{{ user_name }} frontend npm build"
   become: true
   become_user: "{{ user_name }}"
@@ -165,7 +176,28 @@
 - name: "{{ user_name }} Enable x11vnc service"
   become: true
   systemd:
-    name: x11vnc_{{ user_name }}
+    name: "x11vnc_{{ user_name }}"
     state: started
     enabled: yes
   tags: x11
+- name: Print user_name
+  debug:
+    msg: "This is my username {{ user_name }}"
+# Always fails at the first run when anything with the variable {{ user_name }} changes.
+# Second run is always successful.
+- name: "Create systemd ReactApp service file for frontend for user {{ user_name }}"
+  become: true
+  template: 
+    src: react_frontend.service.j2
+    dest: /etc/systemd/system/{{ user_name }}-react-frontend.service
+    mode: '0644'
+    owner: root
+    group: root
+  notify: restart {{ user_name }}-react-frontend
+  debugger: on_failed
+- name: "Start and enable frontend service for user {{ user_name }}"
+  become: true
+  systemd:
+    name: "{{ user_name }}-react-frontend"
+    state: started
+    enabled: yes
