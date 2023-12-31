@@ -6,7 +6,7 @@ After=multi-user.target
 Type=simple
 User={{ user_name }}
 PIDFile=/home/{{ user_name }}/.vnc/%H:0.pid
-ExecStart=/usr/bin/x11vnc -forever -nevershared -display :{{ display_number }} -auth .Xauthority
+ExecStart=/usr/bin/x11vnc -forever -rfbport 590{{ display_number }} -nevershared -display :{{ display_number }} -auth .Xauthority
 
 ExecStop=kill $(cat /home/{{ user_name }}/.vnc/%H:0.pid)
 Restart=always

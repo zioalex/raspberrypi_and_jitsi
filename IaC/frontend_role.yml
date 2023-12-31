@@ -3,7 +3,7 @@
      become: true
      roles:
      # pass the variable user_name to the role
-      - { role: translator_user, user_name: 'lang2', jitsi_channel: 'eng', frontend_port: 3001 } # All the other users are accessible via VNC and Web service at the port XXX
+      - { role: translator_user, user_name: 'lang2', jitsi_channel: 'eng', frontend_port: 3001, display_number: "1" } # All the other users are accessible via VNC and Web service at the port XXX
      handlers:
       - name: "restart {{ user_name }}-react-frontend"
         become: true
