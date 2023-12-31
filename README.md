@@ -27,6 +27,8 @@
     - [Jitsi SSL Certificate configuration](#jitsi-ssl-certificate-configuration)
   - [Enable the NGINX config](#enable-the-nginx-config)
   - [Prosody setup](#prosody-setup)
+  - [Pulseaudio setup](#pulseaudio-setup)
+    - [References](#references)
   - [Audio Recording](#audio-recording)
     - [Asound conf - Is this used in the last pulse version?](#asound-conf---is-this-used-in-the-last-pulse-version)
     - [Create the output sink called recording](#create-the-output-sink-called-recording)
@@ -46,7 +48,7 @@
 - [Best practices](#best-practices)
 - [Disable the screen dimming -  RO CONFIG](#disable-the-screen-dimming----ro-config)
 - [RO FS](#ro-fs)
-  - [References](#references)
+  - [References](#references-1)
 - [Monitor the temperature](#monitor-the-temperature)
 - [Disable not useful services](#disable-not-useful-services)
   - [Auto update](#auto-update)
@@ -56,7 +58,7 @@
 - [Removes old revisions of snaps](#removes-old-revisions-of-snaps)
 - [Backup](#backup)
 - [Todo](#todo)
-- [References](#references-1)
+- [References](#references-2)
 
 # Intro
 
@@ -361,6 +363,27 @@ systenctl restart nginx
 
     ln -s /etc/opt/chrome/policies/ /etc/chromium/ # config for chrome and Chromium are stored in different placeS
 
+## Pulseaudio setup
+
+The current setup is using PulseAudio to manage the audio. The unique Pulseaudio server is running within the main (lang1) user. The other users are using the Pulseaudio server of the main user. This is done to avoid the problem of the audio device that can be used only by one user at time.
+
+The Pulseaudio server is started by the user lang1 and it is configured to start automatically at boot. The lang2 point to the network Pulseaudio server via the config `default-server = unix:/tmp/pulse-socket` in the file `/home/lang2/.config/pulse/client.conf`
+
+The default device is set in the .xinitrc file with the command `pacmd set-default-source pacmd set-default-source alsa_input.usb-C-Media_Electronics_Inc._USB_Audio_Device-00.mono-fallback.2`
+
+While chromium on the lang2, is started with:
+`PULSE_SOURCE="alsa_input.usb-C-Media_Electronics_Inc._USB_Audio_Device-00.mono-fallback" /usr/bin/chromium  --app=http://localhost:3001`
+
+### References
+https://askubuntu.com/questions/14077/how-can-i-change-the-default-audio-device-from-command-line
+
+https://wiki.archlinux.org/title/PulseAudio/Examples#Set_default_input_sources
+
+https://askubuntu.com/questions/71863/how-to-change-pulseaudio-sink-with-pacmd-set-default-sink-during-playback/72076#72076
+
+https://shallowsky.com/linux/pulseaudio-command-line.html
+
+https://copyprogramming.com/howto/change-pulseaudio-input-output-from-shell
 ## Audio Recording
 To record the audio Jibri should be used but I couldn't manage to make it working.
 So I am recording the audio with Python intercepting the Audio device.
