@@ -172,7 +172,7 @@
     state: started
     enabled: yes
   tags: x11
-  when: main_user is defined and main_user == true
+  # when: main_user is defined and main_user == true
 - name: "{{ user_name }} Enable x11vnc service"
   become: true
   systemd:
