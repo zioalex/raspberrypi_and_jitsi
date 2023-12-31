@@ -1,0 +1,7 @@
+---
+# tasks file for base_infra
+- name: Modify /etc/pulse/default.pa
+  lineinfile:
+    path: /etc/pulse/default.pa
+    regexp: '^load-module module-stream-restore$'
+    line: 'load-module module-stream-restore restore_device=false'
