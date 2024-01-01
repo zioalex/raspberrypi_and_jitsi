@@ -74,7 +74,18 @@
     owner: root
     group: root
   tags: x11
-  # when: main_user is defined and main_user == true
+- name: "{{ user_name }} pulseaudio unix socket config"
+  become: true
+  file:
+    path: /home/{{ user_name }}/.config/pulse/client.conf
+    state: touch
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+    mode: '0644'
+    content: |
+      default-server = unix:/tmp/pulse-socket
+      load-module module-stream-restore restore_device=false
+  when: main_user is not defined or main_user == false
 # - name: "{{ user_name }} Copy the npm backend service"
 #   become: true
 #   copy:

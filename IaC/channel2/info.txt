@@ -1,2 +1,0 @@
-mkdir /run/pulse
-ln -s /tmp/pulse-socket /run/pulse/native # needed?

@@ -243,7 +243,7 @@ import "./style.css";
     const handleShutdown = () => {
         setIsShuttingDown(true);
     
-        fetch('/shutdown', {
+        fetch('http://localhost:5000/shutdown', {
           method: 'GET'
         })
           .then(response => {
@@ -262,7 +262,7 @@ import "./style.css";
       };
 
       const handleReboot = () => {
-        fetch('/reboot', {
+        fetch('http://localhost:5000/reboot', {
           method: 'GET'
         })
           .then(response => {
