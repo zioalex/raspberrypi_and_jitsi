@@ -2,6 +2,8 @@ import { JitsiMeeting } from '@jitsi/react-sdk';
 import React, { useRef, useState } from 'react';
 import "./style.css";
 
+const jitsiDomain = 'translation.sennsolutions.com';
+
   const App = () => {
     const apiRef = useRef();
     const [ logItems, updateLog ] = useState([]);
@@ -243,7 +245,7 @@ import "./style.css";
     const handleShutdown = () => {
         setIsShuttingDown(true);
     
-        fetch('http://localhost:5000/shutdown', {
+        fetch('http://' + jitsiDomain + ':5000/shutdown', {
           method: 'GET'
         })
           .then(response => {
@@ -262,7 +264,7 @@ import "./style.css";
       };
 
       const handleReboot = () => {
-        fetch('http://localhost:5000/reboot', {
+        fetch('http://' + jitsiDomain + ':5000/reboot', {
           method: 'GET'
         })
           .then(response => {
@@ -323,7 +325,7 @@ import "./style.css";
             }}> */}
             <div class="column">
             <JitsiMeeting
-		        domain = { 'translation.sennsolutions.com' }
+                domain = { jitsiDomain }
                 roomName = { generateRoomName() }
                 spinner = { renderSpinner }
                 configOverwrite = {{
