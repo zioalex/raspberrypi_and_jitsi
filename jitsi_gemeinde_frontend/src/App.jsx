@@ -245,7 +245,7 @@ const jitsiDomain = 'translation.sennsolutions.com';
     const handleShutdown = () => {
         setIsShuttingDown(true);
     
-        fetch('http://' + jitsiDomain + ':5000/shutdown', {
+        fetch(`http://${jitsiDomain}:5000/shutdown`, {
           method: 'GET'
         })
           .then(response => {
@@ -264,7 +264,7 @@ const jitsiDomain = 'translation.sennsolutions.com';
       };
 
       const handleReboot = () => {
-        fetch('http://' + jitsiDomain + ':5000/reboot', {
+        fetch(`http://${jitsiDomain}:5000/reboot`, {
           method: 'GET'
         })
           .then(response => {
