@@ -1,0 +1,234 @@
+- name: Add Jitsi Meet repository key
+  apt_key:
+    url: https://download.jitsi.org/jitsi-key.gpg.key
+
+- name: Add Jitsi Meet repository
+  apt_repository:
+    repo: 'deb [signed-by=/usr/share/keyrings/jitsi-keyring.gpg] https://download.jitsi.org stable/'
+    state: present
+  notify:
+    - Install Jitsi Meet
+
+- name: Install Jitsi Meet
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - jitsi-meet
+      - jitsi-meet-prosody
+      - jitsi-videobridge2
+      - jitsi-meet-web
+      - default-jdk
+    update_cache: yes
+  notify:
+    - Set Jitsi Videobridge memory limit
+    - Set Jicofo memory limit
+
+- name: Set Jitsi Videobridge memory limit
+  lineinfile:
+    path: /etc/jitsi/videobridge/config
+    line: 'VIDEOBRIDGE_MAX_MEMORY="1024m"'
+
+- name: Set Jicofo memory limit
+  lineinfile:
+    path: /etc/jitsi/jicofo/config
+    line: 'JICOFO_MAX_MEMORY="1024m"'
+
+- name: "Create {{ jitsi_fqdn }}-config.js"
+  become: true
+  file:
+    path: /etc/jitsi/meet/{{ jitsi_fqdn }}-config.js
+    state: touch
+
+- name: Copy Jitsi Meet configuration file
+  become: true
+  copy:
+    src: files/{{ jitsi_fqdn }}-config.js
+    dest: /etc/jitsi/meet/{{ jitsi_fqdn }}-config.js
+
+
+- name: Copy SSL certificate and key files
+  become: true
+  copy:
+    src: files/ssl_certs/
+    dest: /etc/ssl/
+    mode: '0644'
+    owner: root
+    group: root
+
+- name: Copy Jicofo configuration file
+  become: true
+  copy:
+    src: files/jitsi_config/jicofo.conf
+    dest: /etc/jitsi/jicofo/
+    mode: '0644'
+    owner: root
+    group: root
+
+- name: Copy jvb configuration file
+  become: true
+  copy:
+    src: files/jitsi_config/jvb.conf
+    dest: /etc/jitsi/videobridge/
+    mode: '0644'
+    owner: root
+    group: root
+
+- name: Copy sip commnication configuration file
+  become: true
+  copy:
+    src: files/jitsi_config/sip-communicator.properties
+    dest: /etc/jitsi/videobridge/
+    mode: '0644'
+    owner: root
+    group: root
+
+- name: Copy the Nginx configuration
+  become: true
+  copy:
+    src: files/nginx/{{ jitsi_fqdn }}.conf
+    dest: /etc/nginx/sites-available/
+    mode: '0644'
+    owner: root
+    group: root
+- name: Copy the Prosody configuration
+  become: true
+  copy:
+    src: files/prosody/{{ jitsi_fqdn }}.cfg.lua
+    dest: /etc/prosody/conf.avail
+    mode: '0644'
+    owner: root
+    group: root
+
+# how to create the certificate files on the fly
+# prosodyctl cert generate  {{ jitsi_fqdn }} 
+# prosodyctl cert generate auth.{{ jitsi_fqdn }}
+# prosodyctl reload
+- name: Copy certificate files to /var/lib/prosody/
+  become: true
+  copy:
+    src: files/prosody/certs/
+    dest: /var/lib/prosody/
+    mode: '0640'
+    owner: prosody
+    group: prosody
+
+- name: Create links for files ending with .key
+  become: true
+  find:
+    paths: /var/lib/prosody
+    patterns: '*.key'
+  register: key_files
+
+- name: Create symbolic links for key files
+  become: true
+  vars:
+    basename: "{{ lookup('pipe', 'echo basename') }}"
+  file:
+    src: "{{ item.path }}"
+    dest: "/etc/prosody/certs/{{ item.path | basename }}"
+    state: link
+    force: yes
+  loop: "{{ key_files.files }}"
+
+- name: Create links for files ending with .cnf
+  become: true
+  find:
+    paths: /var/lib/prosody
+    patterns: '*.cnf'
+  register: cnf_files
+
+- name: Create symbolic links for cnf files
+  become: true
+  vars:
+    basename: "{{ lookup('pipe', 'echo basename') }}"
+  file:
+    src: "{{ item.path }}"
+    dest: "/etc/prosody/certs/{{ item.path | basename }}"
+    state: link
+    force: yes
+  loop: "{{ cnf_files.files }}"
+
+- name: Create links for files ending with .crt
+  become: true
+  find:
+    paths: /var/lib/prosody
+    patterns: '*.crt'
+  register: crt_files
+
+- name: Create symbolic links for crt files
+  become: true
+  vars:
+    basename: "{{ lookup('pipe', 'echo basename') }}"
+  file:
+    src: "{{ item.path }}"
+    dest: "/etc/prosody/certs/{{ item.path | basename }}"
+    state: link
+    force: yes
+  loop: "{{ crt_files.files }}"
+
+- name: Enable the Prosody configuration file
+  become: true
+  file:
+    src:  /etc/prosody/conf.avail/{{ jitsi_fqdn }}.cfg.lua
+    dest: /etc/prosody/conf.d/{{ jitsi_fqdn }}.cfg.lua 
+    state: link
+
+- name: Copy the main Prosody configuration file
+  become: true
+  copy:
+    src:  files/prosody/prosody.cfg.lua
+    dest: /etc/prosody/prosody.cfg.lua 
+    mode: '0644'
+    owner: root
+    group: prosody
+
+- name: Copy the auth.{{ jitsi_fqdn }} auth files
+  become: true
+  copy:
+    src: files/prosody/var/lib/prosody/
+    dest: /var/lib/prosody
+    owner: prosody
+    group: prosody
+    mode: '0640'
+
+- name: Copy tunserver.conf
+  become: true
+  copy:
+    src: files/turnserver/turnserver.conf
+    dest: /etc/turnserver.conf
+    owner: turnserver
+    group: root
+    mode: '0644'
+- name: Print variable
+  debug:
+    var: jitsi_fqdn
+
+- name: Prosody Auth cert link to /usr/local/share/ca-certificates
+  become: true
+  file:
+    src:  /var/lib/prosody/auth.{{ jitsi_fqdn }}.crt
+    dest: /usr/local/share/ca-certificates/auth.{{ jitsi_fqdn }}.crt
+    state: link
+
+- name: Prosody Auth cert link to /etc/ssl/certs
+  become: true
+  file:
+    src:  /usr/local/share/ca-certificates/auth.{{ jitsi_fqdn }}.crt
+    dest: /etc/ssl/certs/auth.{{ jitsi_fqdn }}.crt
+    state: link
+
+- name: Update the CA certificates
+  become: true
+  command: update-ca-certificates -f
+
+- name: Copy turnserver config
+  become: true
+  copy:
+    src: files/coturn/turnserver.conf
+    dest: /etc/turnserver.conf
+    mode: '0644'
+    owner: turnserver
+    group: root 

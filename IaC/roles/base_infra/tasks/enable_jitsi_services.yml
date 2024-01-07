@@ -1,0 +1,39 @@
+
+- name: Enable Jitsi Nginx configuration file
+  become: true
+  file:
+    src: /etc/nginx/sites-available/{{ jitsi_fqdn }}.conf
+    dest: /etc/nginx/sites-enabled/{{ jitsi_fqdn }}.conf
+    state: link
+    
+- name: Enable default Nginx configuration file
+  become: true
+  file:
+    src: /etc/nginx/sites-available/default
+    dest: /etc/nginx/sites-enabled/default
+    state: link
+    
+- name: Reload Nginx configuration
+  become: true
+  systemd:
+    name: nginx
+    state: reloaded
+
+- name: Restart Coturn
+  become: true
+  systemd:
+    name: coturn
+    state: restarted
+    enabled: yes
+
+- name: Enable and start Nginx service
+  systemd:
+    name: nginx
+    state: started
+    enabled: yes
+
+- name: Restart Jitsi Meet
+  become: true
+  service:
+    name: jitsi-videobridge2
+    state: restarted

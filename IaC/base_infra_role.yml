@@ -1,6 +1,7 @@
 # ansible-playbook -i hosts backend_role.yml
    - hosts: all
      become: true
+     vars_files:
+       - vars/main.yml
      roles:
-     # pass the variable user_name to the role
       - { role: base_infra }

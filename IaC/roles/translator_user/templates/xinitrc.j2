@@ -46,7 +46,7 @@ pactl list short sources >> /home/pi/pa_list
 echo "Start the Backend app"
 #cd /home/pi/jitsi_gemeinde_backend
 #npm start &
-#sleep 3
+sleep 3
 
 # Try to set Chromium to a normal start
 sed -si 's/exit_type\":\"Crashed/exit_type\":\"none/' ~/.config/chromium/Default/Preferences

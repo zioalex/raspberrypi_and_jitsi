@@ -1,0 +1,34 @@
+- name: Create netplan configuration file
+  copy:
+    dest: /etc/netplan/01-netcfg.yaml
+    content: |
+      network:
+        version: 2
+        renderer: networkd
+        ethernets:
+          eth0:
+            mtu: "1472"
+            dhcp4: false
+            addresses: [10.0.0.2/24]
+            routes:
+              - to: default
+                via: 10.0.0.1
+            nameservers:
+              addresses: [10.0.0.2]
+        wifis:
+          wlan0:
+            access-points:
+              CasaSurace:
+                password: "{{ lookup('env', 'WIFI_SECRET') }}"
+            optional: true
+            mtu: "1472"
+            dhcp4: false
+            addresses: [192.168.178.190/24]
+            nameservers:
+              addresses: [127.0.0.1]
+  when: create_netplan_config | default(false)
+  register: netplan_config_created
+
+- name: Apply netplan configuration
+  command: netplan apply
+  when: netplan_config_created.changed
