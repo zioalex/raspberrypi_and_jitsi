@@ -1,2 +1,11 @@
 ---
 # handlers file for base_infra
+- name: Restart systemd-resolved
+  systemd:
+    name: systemd-resolved
+    state: restarted
+
+- name: Restart dnsmasq
+  systemd:
+    name: dnsmasq
+    state: restarted

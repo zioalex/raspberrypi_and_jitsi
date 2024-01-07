@@ -1,0 +1,22 @@
+- name: Stop and disable systemd-resolved
+  systemd:
+    name: systemd-resolved
+    state: stopped
+    enabled: no
+
+- name: Install dnsmasq
+  apt:
+    name: dnsmasq
+    state: present
+    update_cache: yes
+
+- meta: flush_handlers
+
+- name: Configure dnsmasq
+  blockinfile:
+    path: /etc/dnsmasq.conf
+    block: |
+      server={{ upstream_dns }}#53
+      address=/{{ jitsi_fqdn }}/10.0.0.2
+      interface=eth0
+  notify: Restart dnsmasq
