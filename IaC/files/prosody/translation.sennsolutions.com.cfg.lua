@@ -36,7 +36,10 @@ unlimited_jids = {
 }
 
 VirtualHost "translation.sennsolutions.com"
-    authentication = "jitsi-anonymous" -- do not delete me
+    authentication = "token" -- "internal_hashed" -- "jitsi-anonymous" -- do not delete me
+    app_id = "translation"
+    app_secret = "translation_secret"
+    allow_empty_token = true
     -- Properties below are modified by jitsi-meet-tokens package config
     -- and authentication above is switched to "token"
     --app_id="example_app_id"
@@ -73,6 +76,10 @@ VirtualHost "translation.sennsolutions.com"
     room_metadata_component = "metadata.translation.sennsolutions.com"
     main_muc = "conference.translation.sennsolutions.com"
     -- muc_lobby_whitelist = { "recorder.translation.sennsolutions.com" } -- Here we can whitelist jibri to enter lobby enabled rooms
+
+VirtualHost "guest.translation.sennsolutions.com"
+    authentication = "jitsi-anonymous"
+    c2s_require_encryption = false
 
 Component "conference.translation.sennsolutions.com" "muc"
     restrict_room_creation = true

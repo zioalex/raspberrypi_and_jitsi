@@ -80,6 +80,8 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
         apiRef.current.on('raiseHandUpdated', printEventOutput);
         apiRef.current.on('titleViewChanged', printEventOutput);
         apiRef.current.on('chatUpdated', handleChatUpdates);
+        // apiRef.current.executeCommand('displayName', 'translator');
+        // apiRef.current.executeCommand('unmute')
         //apiRef.current.on('knockingParticipant', handleKnockingParticipant);
     };
 
@@ -289,60 +291,67 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
                 textAlign: 'center'
             }}>
             </h1> */}
+            <div class="row">
+                <h1>Jitsi Channel {process.env.REACT_APP_LANG} </h1>
+            </div>
             {renderButtons()}
-            <div class="column">
-            <button 
-                onClick={handleReboot}
-                style = {{
-                    border: 0,
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    background: '#bb486f',
-                    color: 'white',
-                    padding: '10px 60px',
-                    margin: '20px 2px'
-                }}>
-                    Restart
-                </button>
-            <button 
-                onClick={handleShutdown}
-                disabled={isShuttingDown}
-                style = {{
-                    border: 0,
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    background: '#df486f',
-                    color: 'white',
-                    padding: '10px 60px',
-                    margin: '10px 2px'
-                }}>
-                    {isShuttingDown ? 'Shutting down...' : 'Power Off'}
-                </button>
-            </div>
+            <div class="row">
+                <div class="column">
+                <button 
+                    onClick={handleReboot}
+                    style = {{
+                        border: 0,
+                        borderRadius: '6px',
+                        fontSize: '14px',
+                        background: '#bb486f',
+                        color: 'white',
+                        padding: '10px 60px',
+                        margin: '20px 2px'
+                    }}>
+                        Restart
+                    </button>
+                <button 
+                    onClick={handleShutdown}
+                    disabled={isShuttingDown}
+                    style = {{
+                        border: 0,
+                        borderRadius: '6px',
+                        fontSize: '14px',
+                        background: '#df486f',
+                        color: 'white',
+                        padding: '10px 60px',
+                        margin: '10px 2px'
+                    }}>
+                        {isShuttingDown ? 'Shutting down...' : 'Power Off'}
+                    </button>
+                </div>
 
-            {/* <div style = {{
-                display: 'flex',
-                justifyContent: 'right'
-            }}> */}
-            <div class="column">
-            <JitsiMeeting
-                domain = { jitsiDomain }
-                roomName = { generateRoomName() }
-                spinner = { renderSpinner }
-                configOverwrite = {{
-                    subject: 'lalalala',
-                    hideConferenceSubject: false
-                }}
-                onApiReady = { externalApi => handleApiReady(externalApi) }
-                onReadyToClose = { handleReadyToClose }
-                getIFrameRef = { handleJitsiIFrameRef1 } />
-            </div>
+                {/* <div style = {{
+                    display: 'flex',
+                    justifyContent: 'right'
+                }}> */}
+                <div class="column">
+    
+                <JitsiMeeting
+                    domain = { jitsiDomain }
+                    roomName = { generateRoomName() }
+                    spinner = { renderSpinner }
+                    jwt = { process.env.REACT_APP_JWT }
+                    configOverwrite = {{
+                        subject: '{process.env.REACT_APP_LANG}',
+                        hideConferenceSubject: false
+                    }}
+                    onApiReady={handleApiReady}
+                    //onApiReady = { externalApi => handleApiReady(externalApi) }
+                    onReadyToClose = { handleReadyToClose }
+                    getIFrameRef = { handleJitsiIFrameRef1 } />
+                </div>
+            </div>            
             <div class="row">
                 <h1>Environment Variables</h1>
                 <p>REACT_APP_JITSI_FQDN: {process.env.REACT_APP_JITSI_FQDN}</p>
                 <p>REACT_APP_BACKEND_IP: {process.env.REACT_APP_BACKEND_IP}</p>
             </div>
-            {/* {renderNewInstance()} */}
             {renderLog()}
             {renderParticipants()}
             </body>

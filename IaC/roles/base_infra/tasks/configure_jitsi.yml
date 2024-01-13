@@ -19,9 +19,9 @@
       - jitsi-meet
       - jitsi-meet-prosody
       - jitsi-videobridge2
+      - jitsi-meet-tokens
       - jitsi-meet-web
       - default-jdk
-    update_cache: yes
   notify:
     - Set Jitsi Videobridge memory limit
     - Set Jicofo memory limit

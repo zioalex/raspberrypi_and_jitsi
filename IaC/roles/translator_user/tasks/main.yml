@@ -76,9 +76,8 @@
   tags: x11
 - name: "{{ user_name }} pulseaudio unix socket config"
   become: true
-  file:
-    path: /home/{{ user_name }}/.config/pulse/client.conf
-    state: touch
+  copy:
+    dest: /home/{{ user_name }}/.config/pulse/client.conf
     owner: "{{ user_name }}"
     group: "{{ user_name }}"
     mode: '0644'

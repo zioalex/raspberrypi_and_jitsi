@@ -33,7 +33,7 @@ var config = {
         domain: 'translation.sennsolutions.com',
 
         // When using authentication, domain for guest users.
-        // anonymousdomain: 'guest.example.com',
+        anonymousdomain: 'guest.translation.sennsolutions.com',
 
         // Domain for authenticated users. Defaults to <domain>.
         // authdomain: 'translation.sennsolutions.com',
