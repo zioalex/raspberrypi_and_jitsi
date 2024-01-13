@@ -131,9 +131,8 @@
     line: 'load-module module-stream-restore restore_device=false'
 - name: Create /etc/pulse/default.pa.d/unix_socket.pa for pulseaudio
   become: true
-  file:
-    path: /etc/pulse/default.pa.d/unix_socket.pa
-    state: touch
+  copy:
+    dest: /etc/pulse/default.pa.d/unix_socket.pa
     owner: root
     group: root
     mode: '0644'

@@ -104,6 +104,14 @@
     owner: "{{ user_name }}"
     group: "{{ user_name }}"
   tags: service_frontend
+- name: Create React Frontend .env file for {{ user_name }}
+  template:
+    src: react_app_frontend_env.j2
+    dest: /home/{{ user_name }}/jitsi_gemeinde_frontend/.env
+    mode: '0644'
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+  tags: service_frontend
 - name: Copy package.json file for {{ user_name }}
   template:
     src: package.json.j2

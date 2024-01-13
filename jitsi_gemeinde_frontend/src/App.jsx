@@ -2,7 +2,8 @@ import { JitsiMeeting } from '@jitsi/react-sdk';
 import React, { useRef, useState } from 'react';
 import "./style.css";
 
-const jitsiDomain = 'translation.sennsolutions.com';
+const jitsiDomain = process.env.REACT_APP_JITSI_FQDN;
+const backendIp = process.env.REACT_APP_BACKEND_IP;
 
   const App = () => {
     const apiRef = useRef();
@@ -245,7 +246,7 @@ const jitsiDomain = 'translation.sennsolutions.com';
     const handleShutdown = () => {
         setIsShuttingDown(true);
     
-        fetch(`http://${jitsiDomain}:5000/shutdown`, {
+        fetch(`http://${backendIp}:5000/shutdown`, {
           method: 'GET'
         })
           .then(response => {
@@ -264,7 +265,7 @@ const jitsiDomain = 'translation.sennsolutions.com';
       };
 
       const handleReboot = () => {
-        fetch(`http://${jitsiDomain}:5000/reboot`, {
+        fetch(`http://${backendIp}:5000/reboot`, {
           method: 'GET'
         })
           .then(response => {
@@ -335,6 +336,11 @@ const jitsiDomain = 'translation.sennsolutions.com';
                 onApiReady = { externalApi => handleApiReady(externalApi) }
                 onReadyToClose = { handleReadyToClose }
                 getIFrameRef = { handleJitsiIFrameRef1 } />
+            </div>
+            <div class="row">
+                <h1>Environment Variables</h1>
+                <p>REACT_APP_JITSI_FQDN: {process.env.REACT_APP_JITSI_FQDN}</p>
+                <p>REACT_APP_BACKEND_IP: {process.env.REACT_APP_BACKEND_IP}</p>
             </div>
             {/* {renderNewInstance()} */}
             {renderLog()}
