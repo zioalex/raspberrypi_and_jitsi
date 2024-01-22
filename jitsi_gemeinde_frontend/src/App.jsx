@@ -394,11 +394,9 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
         <h2>Participants:</h2>
         <ul>
             { 
-
             participants.map((participant, index) => (
-                // Name: {participant.displayName}, ID: {participant.participantId === apiRef.current.getMyUserId() ? <b>{participant.participantId}</b> : participant.participantId}
                 <li key={index}>
-                    Name: {participant.displayName}, ID: {participant.participantId}
+                    Name: {participant.displayName}, ID: {participant.participantId === apiRef.current.getMyUserId() ? <b>{participant.participantId}</b> : participant.participantId}
                 </li>
             ))}
         </ul>
