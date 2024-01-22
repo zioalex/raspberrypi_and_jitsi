@@ -1,5 +1,5 @@
 import { JitsiMeeting } from '@jitsi/react-sdk';
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import "./style.css";
 
 const jitsiDomain = process.env.REACT_APP_JITSI_FQDN;
@@ -9,6 +9,8 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
     const apiRef = useRef();
     const [ logItems, updateLog ] = useState([]);
     const [ showNew ] = useState(false);
+    const [participants, setParticipants] = useState([]);
+
     // const [ knockingParticipants, updateKnockingParticipants ] = useState([]);
 
     const printEventOutput = payload => {
@@ -108,6 +110,15 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
         );
     };
 
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const info = apiRef.current.getParticipantsInfo();
+            setParticipants(info);
+        }, 1000);
+    
+        return () => clearInterval(interval);
+    }, []);
+
     const [isMutingAll, setIsMutingAll] = useState(false);
 
     const renderButtons = () => (
@@ -186,7 +197,34 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
                         padding: '20px 60px',
                         margin: '2px 2px'
                     }}
-                    onClick = { () => apiRef.current.executeCommand('muteEveryone')}>
+                    onClick = { () => {
+                        apiRef.current.executeCommand('muteEveryone');
+                        const participants = apiRef.current.getParticipantsInfo();
+                        participants.forEach(participant => {
+                            if (participant.displayName === 'translator') {
+                                // Wait for a short delay to ensure the 'muteEveryone' command has taken effect
+                                setTimeout(() => {
+                                    apiRef.current.isAudioMuted(participant.participantId).then(muted => {
+                                        if (muted) {
+                                            console.log(`The participant ${participant.participantId}  is muted. Unmuting`);
+                                            apiRef.current.executeCommand('toggleAudio', participant.participantId);
+                                        } else {
+                                            console.log(`The participant ${participant.participantId} is not muted`);
+                                        }
+                                    });
+                                }, 1000);
+                            }
+                        });
+                        // apiRef.current.isAudioMuted().then(muted => {
+                        //     if (muted) {
+                        //         console.log('The local user is muted. Unmuting');
+                        //         apiRef.current.executeCommand('toggleAudio');
+                        //     } else {
+                        //         console.log('The local user is not muted');
+                        //     }
+                        // });
+                          
+                    }}>
                     {isMutingAll ? 'Muting All...' : 'Mute All'}
                 </button>
                 {/* <button
@@ -352,6 +390,19 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
                 <p>REACT_APP_JITSI_FQDN: {process.env.REACT_APP_JITSI_FQDN}</p>
                 <p>REACT_APP_BACKEND_IP: {process.env.REACT_APP_BACKEND_IP}</p>
             </div>
+            <div>
+        <h2>Participants:</h2>
+        <ul>
+            { 
+
+            participants.map((participant, index) => (
+                // Name: {participant.displayName}, ID: {participant.participantId === apiRef.current.getMyUserId() ? <b>{participant.participantId}</b> : participant.participantId}
+                <li key={index}>
+                    Name: {participant.displayName}, ID: {participant.participantId}
+                </li>
+            ))}
+        </ul>
+    </div>
             {renderLog()}
             {renderParticipants()}
             </body>
