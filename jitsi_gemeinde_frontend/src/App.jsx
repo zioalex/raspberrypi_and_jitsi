@@ -1,6 +1,6 @@
 import { JitsiMeeting } from '@jitsi/react-sdk';
 import React, { useRef, useState, useEffect } from 'react';
-import "./style.css";
+import "./App.css"; //"./style.css";
 
 const jitsiDomain = process.env.REACT_APP_JITSI_FQDN;
 const backendIp = process.env.REACT_APP_BACKEND_IP;
@@ -119,7 +119,50 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
         return () => clearInterval(interval);
     }, []);
 
-    const [isMutingAll, setIsMutingAll] = useState(false);
+    const [isMutingAll] = useState(false);
+    const [isMuted, setIsMuted] = useState(false);
+
+    // useEffect(() => {
+    //     const interval = setInterval(() => {
+    //         apiRef.current.addEventListener('audioMuteStatusChanged', (event) => {
+    //             console.log('audioMuteStatusChanged event fired', event);
+    //             setIsMuted(event.muted);
+    //         });
+    //     }, 1000);
+    //     return () => clearInterval(interval);
+
+    // }, [apiRef]);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            apiRef.current.isAudioMuted().then(muted => {
+                console.log('isAudioMuted', muted);
+                setIsMuted(muted);
+            });
+    
+            apiRef.current.addEventListener('audioMuteStatusChanged', (event) => {
+                console.log('isAudioMuted event', event.muted);
+                setIsMuted(event.muted);
+            });
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [apiRef]);
+
+    const handleUnmute = () => {
+        if (isMuted) {
+            console.log('Executing toggleAudio command');
+            apiRef.current.executeCommand('toggleAudio');
+        }
+    };
+
+    // useEffect(() => {
+    //     if (isMuted) {
+    //         console.log('Executing Automatic unMute command');
+    //         setTimeout(() => {
+    //             apiRef.current.executeCommand('toggleAudio');
+    //         }, 1000);
+    //     }
+    // });
 
     const renderButtons = () => (
         <div class="row">
@@ -202,17 +245,30 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
                         const participants = apiRef.current.getParticipantsInfo();
                         participants.forEach(participant => {
                             if (participant.displayName === 'translator') {
-                                // Wait for a short delay to ensure the 'muteEveryone' command has taken effect
-                                setTimeout(() => {
-                                    apiRef.current.isAudioMuted(participant.participantId).then(muted => {
-                                        if (muted) {
-                                            console.log(`The participant ${participant.participantId}  is muted. Unmuting`);
-                                            apiRef.current.executeCommand('toggleAudio', participant.participantId);
-                                        } else {
-                                            console.log(`The participant ${participant.participantId} is not muted`);
-                                        }
-                                    });
-                                }, 1000);
+                                // Send the mute status to your server
+                                console.log(`The participant ${participant.participantId}  is muted. Sending to server`);
+
+                                fetch('/api/muteStatus', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({
+                                        userId: apiRef.current.getMyUserId(),
+                                        isMuted: true,
+                                    }),
+                                });
+                                // // Wait for a short delay to ensure the 'muteEveryone' command has taken effect
+                                // setTimeout(() => {
+                                //     apiRef.current.isAudioMuted(participant.participantId).then(muted => {
+                                //         if (muted) {
+                                //             console.log(`The participant ${participant.participantId}  is muted. Unmuting`);
+                                //             apiRef.current.executeCommand('toggleAudio', participant.participantId);
+                                //         } else {
+                                //             console.log(`The participant ${participant.participantId} is not muted`);
+                                //         }
+                                //     });
+                                // }, 1000);
                             }
                         });
                         // apiRef.current.isAudioMuted().then(muted => {
@@ -227,21 +283,12 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
                     }}>
                     {isMutingAll ? 'Muting All...' : 'Mute All'}
                 </button>
-                {/* <button
-                    type = 'text'
-                    title = 'Click to create a new JitsiMeeting instance'
-                    style = {{
-                        border: 0,
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        background: '#3D3D3D',
-                        color: 'white',
-                        padding: '12px 46px',
-                        margin: '2px 2px'
-                    }}
-                    onClick = { () => toggleShowNew(!showNew) }>
-                    Toggle new instance
+                {/* <button onClick={() => apiRef.current.executeCommand('toggleAudio')}>
+                    Unmute Myself
                 </button> */}
+                <button onClick={handleUnmute}>
+                    Unmute Myself
+                </button>
             </div>
         </div>
     );
@@ -330,8 +377,9 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
             }}>
             </h1> */}
             <div class="row">
-                <h1>Jitsi Channel {process.env.REACT_APP_LANG} </h1>
+                <h1>Jitsi Channel {process.env.REACT_APP_LANG}</h1>
             </div>
+            <div className={`circle ${isMuted ? 'red' : 'green'}`}></div>
             {renderButtons()}
             <div class="row">
                 <div class="column">
@@ -391,16 +439,16 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
                 <p>REACT_APP_BACKEND_IP: {process.env.REACT_APP_BACKEND_IP}</p>
             </div>
             <div>
-        <h2>Participants:</h2>
-        <ul>
-            { 
-            participants.map((participant, index) => (
-                <li key={index}>
-                    Name: {participant.displayName}, ID: {participant.participantId === apiRef.current.getMyUserId() ? <b>{participant.participantId}</b> : participant.participantId}
-                </li>
-            ))}
-        </ul>
-    </div>
+            <h2>Participants:</h2>
+                <ul>
+                    { 
+                    participants.map((participant, index) => (
+                        <li key={index}>
+                            Name: {participant.displayName}, ID: {participant.participantId}
+                        </li>
+                    ))}
+                </ul>
+            </div>
             {renderLog()}
             {renderParticipants()}
             </body>
