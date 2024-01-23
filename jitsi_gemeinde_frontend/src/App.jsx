@@ -140,11 +140,11 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
                 setIsMuted(muted);
             });
     
-            apiRef.current.addEventListener('audioMuteStatusChanged', (event) => {
-                console.log('isAudioMuted event', event.muted);
-                setIsMuted(event.muted);
-            });
-        }, 1000);
+            // apiRef.current.addEventListener('audioMuteStatusChanged', (event) => {
+            //     console.log('isAudioMuted event', event.muted);
+            //     setIsMuted(event.muted);
+            // });
+        }, 3000);
         return () => clearInterval(interval);
     }, [apiRef]);
 
@@ -155,14 +155,15 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
         }
     };
 
-    // useEffect(() => {
-    //     if (isMuted) {
-    //         console.log('Executing Automatic unMute command');
-    //         setTimeout(() => {
-    //             apiRef.current.executeCommand('toggleAudio');
-    //         }, 1000);
-    //     }
-    // });
+    useEffect(() => {
+        if (isMuted && apiRef.current.isAudioAvailable()) {
+            console.log('Executing Automatic unMute command');
+            setTimeout(() => {
+                apiRef.current.executeCommand('toggleAudio');
+            }, 1000);
+        }
+
+    });
 
     const renderButtons = () => (
         <div class="row">
