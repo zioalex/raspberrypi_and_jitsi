@@ -12,6 +12,14 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
     const [participants, setParticipants] = useState([]);
 
     // const [ knockingParticipants, updateKnockingParticipants ] = useState([]);
+    let localhost = false; 
+    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+        localhost=true;
+        console.log("The app is running on localhost");
+    } else {
+        localhost=false;
+        console.log("The app is not running on localhost");
+    }
 
     const printEventOutput = payload => {
         updateLog(items => [ ...items, JSON.stringify(payload) ]);
@@ -156,7 +164,7 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
     };
 
     useEffect(() => {
-        if (isMuted) { // && apiRef.current.isAudioAvailable()) 
+        if (isMuted && localhost) { 
             console.log('Executing Automatic unMute command');
             setTimeout(() => {
                 apiRef.current.executeCommand('toggleAudio');
@@ -166,21 +174,22 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
     });
 
     useEffect(() => {
-        if (apiRef.current) {
-            console.log('Executing Automatic mute new participant command');
+        const interval = setInterval(() => {
             apiRef.current.addEventListener('participantJoined', (event) => {
-                const participantId = event.id;
-                console.log(`A new participant with ID ${participantId} joined the meeting`);
-                setTimeout(() => {
-                    apiRef.current.executeCommand('setAudioMute', participantId, true);
-                }, 1000);
+                if (localhost) {
+                    const participantId = event.id;
+                    setTimeout(() => {
+                        //apiRef.current.executeCommand('setAudioMute', participantId, true);
+                        apiRef.current.executeCommand('muteEveryone');
+                        console.log(`A new participant with ID ${participantId} joined the meeting - Muting`);
+                    }, 500);
+                }
             });
-        }
-    
+        }, 1000);
+
         return () => {
-            if (apiRef.current) {
-                apiRef.current.removeEventListener('participantJoined');
-            }
+            apiRef.current.removeEventListener('participantJoined')
+            clearInterval(interval);;
         };
     }, []);
 
