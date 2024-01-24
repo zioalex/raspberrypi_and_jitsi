@@ -1,4 +1,24 @@
 # ansible-playbook -i hosts test_role.yml --start-at-task="{{ user_name }} Install nvm"
+- name: Check if required variables are defined
+  assert:
+    that: "{{ item }} is defined"
+    fail_msg: "The required variable '{{ item }}' is not defined"
+  loop:
+    - user_name
+    - display_number
+    - jitsi_channel
+    - jitsi_fqdn
+    - backend_ip
+    - frontend_port
+- name: Check if required environment variables are defined
+  assert:
+    that: "lookup('env', item) != ''"
+    fail_msg: "The required environment variable '{{ item }}' is not defined"
+  loop:
+    - jitsi_jwt
+    - VNC_PASSWORD
+    - PI_PASSWORD
+
 - name: Create {{ user_name }} user
   user:
     name: "{{ user_name }}"

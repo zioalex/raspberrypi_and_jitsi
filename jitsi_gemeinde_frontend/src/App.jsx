@@ -144,7 +144,7 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
             //     console.log('isAudioMuted event', event.muted);
             //     setIsMuted(event.muted);
             // });
-        }, 3000);
+        }, 500);
         return () => clearInterval(interval);
     }, [apiRef]);
 
@@ -156,14 +156,33 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
     };
 
     useEffect(() => {
-        if (isMuted && apiRef.current.isAudioAvailable()) {
+        if (isMuted) { // && apiRef.current.isAudioAvailable()) 
             console.log('Executing Automatic unMute command');
             setTimeout(() => {
                 apiRef.current.executeCommand('toggleAudio');
-            }, 1000);
+            }, 100);
         }
 
     });
+
+    useEffect(() => {
+        if (apiRef.current) {
+            console.log('Executing Automatic mute new participant command');
+            apiRef.current.addEventListener('participantJoined', (event) => {
+                const participantId = event.id;
+                console.log(`A new participant with ID ${participantId} joined the meeting`);
+                setTimeout(() => {
+                    apiRef.current.executeCommand('setAudioMute', participantId, true);
+                }, 1000);
+            });
+        }
+    
+        return () => {
+            if (apiRef.current) {
+                apiRef.current.removeEventListener('participantJoined');
+            }
+        };
+    }, []);
 
     const renderButtons = () => (
         <div class="row">

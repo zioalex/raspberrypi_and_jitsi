@@ -1,0 +1,3 @@
+- Add translation to /etc/hosts 
+- Template the App.jsx to interpolate the jitsi_fqdn
+- 

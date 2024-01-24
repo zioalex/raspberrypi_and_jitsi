@@ -1,5 +1,13 @@
 # ansible-playbook -i hosts backend_role.yml
 ---
+- name: Check if required variables are defined
+  assert:
+    that: "{{ item }} is defined"
+    fail_msg: "The required variable '{{ item }}' is not defined"
+  loop:
+    - user_name
+    - upstream_dns
+
 - name: Ensure user {{ user_name }} exists
   ansible.builtin.user:
     name: "{{ user_name }}"
