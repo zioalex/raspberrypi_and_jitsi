@@ -10,6 +10,7 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
     const [ logItems, updateLog ] = useState([]);
     const [ showNew ] = useState(false);
     const [participants, setParticipants] = useState([]);
+    const [participantCount, setParticipantCount] = useState(0);
 
     // const [ knockingParticipants, updateKnockingParticipants ] = useState([]);
     let localhost = false; 
@@ -190,6 +191,19 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
         return () => {
             apiRef.current.removeEventListener('participantJoined')
             clearInterval(interval);;
+        };
+    }, []);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const info = apiRef.current.getParticipantsInfo();
+            const filteredInfo = info.filter(participant => participant.displayName !== 'translator');
+            const participantCount = filteredInfo.length;
+            setParticipantCount(participantCount);
+        }, 1000);
+
+        return () => {
+            clearInterval(interval);
         };
     }, []);
 
@@ -446,20 +460,24 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
                     justifyContent: 'right'
                 }}> */}
                 <div class="column">
-    
-                <JitsiMeeting
-                    domain = { jitsiDomain }
-                    roomName = { generateRoomName() }
-                    spinner = { renderSpinner }
-                    jwt = { process.env.REACT_APP_JWT }
-                    configOverwrite = {{
-                        subject: '{process.env.REACT_APP_LANG}',
-                        hideConferenceSubject: false
-                    }}
-                    onApiReady={handleApiReady}
-                    //onApiReady = { externalApi => handleApiReady(externalApi) }
-                    onReadyToClose = { handleReadyToClose }
-                    getIFrameRef = { handleJitsiIFrameRef1 } />
+                    <div class="row">
+                        Number of participants: <span style={{ fontSize: '36px' }}>{participantCount}</span>
+                    </div> 
+                    <div class="row">
+                        <JitsiMeeting
+                            domain = { jitsiDomain }
+                            roomName = { generateRoomName() }
+                            spinner = { renderSpinner }
+                            jwt = { process.env.REACT_APP_JWT }
+                            configOverwrite = {{
+                                subject: '{process.env.REACT_APP_LANG}',
+                                hideConferenceSubject: false
+                            }}
+                            onApiReady={handleApiReady}
+                            //onApiReady = { externalApi => handleApiReady(externalApi) }
+                            onReadyToClose = { handleReadyToClose }
+                            getIFrameRef = { handleJitsiIFrameRef1 } />
+                    </div>
                 </div>
             </div>            
             <div class="row">
