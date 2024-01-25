@@ -5,9 +5,17 @@
     state: present
     reload: yes
 
+- name: Install iptables-persistent
+  apt:
+    name: iptables-persistent
+    state: present
+
 - name: Set up NAT rules
   iptables:
     table: nat
     chain: POSTROUTING
     out_interface: eth0
     jump: MASQUERADE
+
+- name: Save iptables rules
+  shell: /sbin/iptables-save > /etc/iptables/rules.v4
