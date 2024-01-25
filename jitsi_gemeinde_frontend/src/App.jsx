@@ -324,8 +324,13 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
             </h1> */}
             <div className="app-container">
             <h1 className="app-title">Jitsi Channel {process.env.REACT_APP_LANG}</h1>
-            <div className="button-container">
-                <button className={`button ${localhost === true ? (isMuted ? 'red' : 'green') : 'green'}`}>{localhost === true ? (isMuted ? 'Muted' : 'Online') : 'Online'}</button>
+            <div className="status-container" style={{ display: 'flex', alignItems: 'center' }}>
+                <div className="button-container">
+                    <button className={`button ${localhost === true ? (isMuted ? 'red' : 'green') : 'green'}`}>{localhost === true ? (isMuted ? 'You are Muted' : 'You are Online') : 'NA'}</button>
+                </div>
+                <div className="participant-count">
+                    {participantCount}
+                </div>
             </div>
             {renderButtons()}
             <div className="button-container">
@@ -334,11 +339,6 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
                     {isShuttingDown ? 'Shutting down...' : 'Power Off'}
                 </button>
             </div>
-
-            <div className="participant-count">
-                Number of participants: <span style={{ fontSize: '36px' }}>{participantCount}</span>
-            </div>
-            
             <JitsiMeeting
                 domain={jitsiDomain}
                 roomName={generateRoomName()}

@@ -27,6 +27,13 @@
   }
 } */
 
+.status-container {
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  gap: 10px;
+}
+
 .App-header {
   background-color: #282c34;
   min-height: 100vh;
@@ -90,7 +97,7 @@
 .app-title {
   text-align: center;
   color: #444;
-  margin-bottom: 50px;
+  margin-bottom: 30px;
 }
 
 .button-container {
@@ -105,7 +112,7 @@
   padding: 10px 20px;
   color: #fff;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 3em;
 }
 
 .reboot-button {
@@ -121,11 +128,12 @@
 }
 
 .participant-count {
-  background-color: #f8f9fa;
+  background-color: #7f8891;
   padding: 20px;
   border-radius: 4px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   margin-bottom: 30px;
+  font-size: 3em;
 }
 
 .rejoin-button {

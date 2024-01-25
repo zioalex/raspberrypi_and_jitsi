@@ -122,7 +122,7 @@
     mode: '0644'
     owner: "{{ user_name }}"
     group: "{{ user_name }}"
-  tags: service_frontend
+  tags: service_frontend, quick_build
 - name: Create React Frontend .env file for {{ user_name }}
   template:
     src: react_app_frontend_env.j2
@@ -130,11 +130,12 @@
     mode: '0644'
     owner: "{{ user_name }}"
     group: "{{ user_name }}"
-  tags: service_frontend
+  tags: service_frontend, quick_build
 - name: Copy package.json file for {{ user_name }}
   template:
     src: package.json.j2
     dest: /home/{{ user_name }}/jitsi_gemeinde_frontend/package.json
+  tags: service_frontend, quick_build
   # build and npm and start the service
 # install nvm via a curl command for the user pi
 - name: "{{ user_name }} Install nvm"
@@ -202,7 +203,7 @@
   args:
     chdir: /home/{{ user_name }}
     executable: /bin/bash
-  tags: service_frontend
+  tags: service_frontend, quick_build
 - name: "Enable frontend_{{ user_name }}_session service"
   become: true
   systemd:
