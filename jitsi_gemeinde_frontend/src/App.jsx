@@ -11,6 +11,7 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
     const [ showNew ] = useState(false);
     const [participants, setParticipants] = useState([]);
     const [participantCount, setParticipantCount] = useState(0);
+    const [showDebugInfo, setShowDebugInfo] = useState(false);
 
     // const [ knockingParticipants, updateKnockingParticipants ] = useState([]);
     let localhost = false; 
@@ -105,19 +106,6 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
     //const generateRoomName = () => `JitsiMeetRoomNo${Math.random() * 100}-${Date.now()}`;
     const generateRoomName = () => process.env.REACT_APP_LANG; // Take this on runtime `ukr`;
 
-    // Multiple instances demo
-    const renderNewInstance = () => {
-        if (!showNew) {
-            return null;
-        }
-
-        return (
-            <JitsiMeeting
-                roomName = { generateRoomName() }
-                getIFrameRef = { handleJitsiIFrameRef2 }
-                />
-        );
-    };
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -207,134 +195,49 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
         };
     }, []);
 
-    const renderButtons = () => (
-        <div class="row">
-           <div class="column">
-            
-                {/* <button
-                    type = 'text'
-                    title = 'Click to execute toggle raise hand command'
-                    style = {{
-                        border: 0,
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        background: '#f8ae1a',
-                        color: '#040404',
-                        padding: '12px 46px',
-                        margin: '2px 2px'
-                    }}
-                    onClick = { () => apiRef.current.executeCommand('toggleRaiseHand') }>
-                    Raise hand
-                </button>
-                <button
-                    type = 'text'
-                    title = 'Click to approve/reject knocking participant'
-                    style = {{
-                        border: 0,
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        background: '#0056E0',
-                        color: 'white',
-                        padding: '12px 46px',
-                        margin: '2px 2px'
-                    }}
-                    onClick = { () => resolveKnockingParticipants(({ name }) => !name.includes('test')) }>
-                    Resolve lobby
-                </button>
-                <button
-                    type = 'text'
-                    title = 'Click to execute subject command'
-                    style = {{
-                        border: 0,
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        background: '#df486f',
-                        color: 'white',
-                        padding: '12px 46px',
-                        margin: '2px 2px'
-                    }}
-                    onClick = { () => apiRef.current.executeCommand('subject', 'New Subject')}>
-                    Change subject
-                </button> */}
-                <button
-                    type = 'text'
-                    title = 'Click to rejoin the JitsiMeeting'
-                    style = {{
-                        border: 0,
-                        borderRadius: '6px',
-                        fontSize: '16px',
-                        background: '#00AA00',
-                        color: 'white',
-                        padding: '20px 60px',
-                        margin: '2px 2px'
-                    }}
-                    onClick = { () => window.location.reload(true) }>
-                    Re-join
-                </button>  
-                <button
-                    type = 'text'
-                    title = 'Mute all'
-                    style = {{
-                        border: 0,
-                        borderRadius: '6px',
-                        fontSize: '16px',
-                        background: '#AAAAAA',
-                        color: 'white',
-                        padding: '20px 60px',
-                        margin: '2px 2px'
-                    }}
-                    onClick = { () => {
-                        apiRef.current.executeCommand('muteEveryone');
-                        const participants = apiRef.current.getParticipantsInfo();
-                        participants.forEach(participant => {
-                            if (participant.displayName === 'translator') {
-                                // Send the mute status to your server
-                                console.log(`The participant ${participant.participantId}  is muted. Sending to server`);
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const debug = urlParams.get('debug');
+        if (debug === 'true') {
+            setShowDebugInfo(true);
+        }
+    }, []);
+    const handleButton1Click = () => {
+        window.location.reload(true)
+    };
 
-                                fetch('/api/muteStatus', {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                    },
-                                    body: JSON.stringify({
-                                        userId: apiRef.current.getMyUserId(),
-                                        isMuted: true,
-                                    }),
-                                });
-                                // // Wait for a short delay to ensure the 'muteEveryone' command has taken effect
-                                // setTimeout(() => {
-                                //     apiRef.current.isAudioMuted(participant.participantId).then(muted => {
-                                //         if (muted) {
-                                //             console.log(`The participant ${participant.participantId}  is muted. Unmuting`);
-                                //             apiRef.current.executeCommand('toggleAudio', participant.participantId);
-                                //         } else {
-                                //             console.log(`The participant ${participant.participantId} is not muted`);
-                                //         }
-                                //     });
-                                // }, 1000);
-                            }
-                        });
-                        // apiRef.current.isAudioMuted().then(muted => {
-                        //     if (muted) {
-                        //         console.log('The local user is muted. Unmuting');
-                        //         apiRef.current.executeCommand('toggleAudio');
-                        //     } else {
-                        //         console.log('The local user is not muted');
-                        //     }
-                        // });
-                          
-                    }}>
+    const handleButton2Click = () => {
+        apiRef.current.executeCommand('muteEveryone');
+            const participants = apiRef.current.getParticipantsInfo();
+            participants.forEach(participant => {
+                if (participant.displayName === 'translator') {
+                    // Send the mute status to your server
+                    console.log(`The participant ${participant.participantId}  is muted. Sending to server`);
+
+                    fetch('/api/muteStatus', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            userId: apiRef.current.getMyUserId(),
+                            isMuted: true,
+                        }),
+                    });
+                }
+            });
+    };
+            
+    const renderButtons = () => {
+        return (
+            <div className="button-container">
+                <button onClick={handleButton1Click} className="button rejoin-button">Re-Join</button>
+                <button onClick={handleButton2Click} className="button mute-all-button">
                     {isMutingAll ? 'Muting All...' : 'Mute All'}
                 </button>
-                {/* <button onClick={() => apiRef.current.executeCommand('toggleAudio')}>
-                    Unmute Myself
-                </button> */}
-                <button onClick={handleUnmute}>
-                    Unmute Myself
-                </button>
             </div>
-        </div>
-    );
+        );
+    };
 
     const renderLog = () => logItems.map(
         (item, index) => (
@@ -419,85 +322,57 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
                 textAlign: 'center'
             }}>
             </h1> */}
-            <div class="row">
-                <h1>Jitsi Channel {process.env.REACT_APP_LANG}</h1>
+            <div className="app-container">
+            <h1 className="app-title">Jitsi Channel {process.env.REACT_APP_LANG}</h1>
+            <div className="button-container">
+                <button className={`button ${localhost === true ? (isMuted ? 'red' : 'green') : 'green'}`}>{localhost === true ? (isMuted ? 'Muted' : 'Online') : 'Online'}</button>
             </div>
-            <div className={`circle ${isMuted ? 'red' : 'green'}`}></div>
             {renderButtons()}
-            <div class="row">
-                <div class="column">
-                <button 
-                    onClick={handleReboot}
-                    style = {{
-                        border: 0,
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        background: '#bb486f',
-                        color: 'white',
-                        padding: '10px 60px',
-                        margin: '20px 2px'
-                    }}>
-                        Restart
-                    </button>
-                <button 
-                    onClick={handleShutdown}
-                    disabled={isShuttingDown}
-                    style = {{
-                        border: 0,
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        background: '#df486f',
-                        color: 'white',
-                        padding: '10px 60px',
-                        margin: '10px 2px'
-                    }}>
-                        {isShuttingDown ? 'Shutting down...' : 'Power Off'}
-                    </button>
-                </div>
+            <div className="button-container">
+                <button onClick={handleReboot} className="button reboot-button">Restart</button>
+                <button onClick={handleShutdown} disabled={isShuttingDown} className={`button shutdown-button ${isShuttingDown ? 'disabled' : ''}`}>
+                    {isShuttingDown ? 'Shutting down...' : 'Power Off'}
+                </button>
+            </div>
 
-                {/* <div style = {{
-                    display: 'flex',
-                    justifyContent: 'right'
-                }}> */}
-                <div class="column">
-                    <div class="row">
-                        Number of participants: <span style={{ fontSize: '36px' }}>{participantCount}</span>
-                    </div> 
-                    <div class="row">
-                        <JitsiMeeting
-                            domain = { jitsiDomain }
-                            roomName = { generateRoomName() }
-                            spinner = { renderSpinner }
-                            jwt = { process.env.REACT_APP_JWT }
-                            configOverwrite = {{
-                                subject: '{process.env.REACT_APP_LANG}',
-                                hideConferenceSubject: false
-                            }}
-                            onApiReady={handleApiReady}
-                            //onApiReady = { externalApi => handleApiReady(externalApi) }
-                            onReadyToClose = { handleReadyToClose }
-                            getIFrameRef = { handleJitsiIFrameRef1 } />
-                    </div>
+            <div className="participant-count">
+                Number of participants: <span style={{ fontSize: '36px' }}>{participantCount}</span>
+            </div>
+            
+            <JitsiMeeting
+                domain={jitsiDomain}
+                roomName={generateRoomName()}
+                spinner={renderSpinner}
+                jwt={process.env.REACT_APP_JWT}
+                configOverwrite={{
+                    subject: '{process.env.REACT_APP_LANG}',
+                    hideConferenceSubject: false
+                }}
+                onApiReady={handleApiReady}
+                onReadyToClose={handleReadyToClose}
+                getIFrameRef={handleJitsiIFrameRef1} 
+            />
+
+            {showDebugInfo && 
+                <div className="environment-variables">
+                    <h2>Environment Variables</h2>
+                    <p>REACT_APP_JITSI_FQDN: {process.env.REACT_APP_JITSI_FQDN}</p>
+                    <p>REACT_APP_BACKEND_IP: {process.env.REACT_APP_BACKEND_IP}</p>
+                    <h2>Participants:</h2>
+                    <ul>
+                        { 
+                        participants.map((participant, index) => (
+                            <li key={index}>
+                                Name: {participant.displayName}, ID: {participant.participantId}
+                            </li>
+                        ))}
+                    </ul>
+                    {renderLog()}
+                    {renderParticipants()}
                 </div>
-            </div>            
-            <div class="row">
-                <h1>Environment Variables</h1>
-                <p>REACT_APP_JITSI_FQDN: {process.env.REACT_APP_JITSI_FQDN}</p>
-                <p>REACT_APP_BACKEND_IP: {process.env.REACT_APP_BACKEND_IP}</p>
-            </div>
-            <div>
-            <h2>Participants:</h2>
-                <ul>
-                    { 
-                    participants.map((participant, index) => (
-                        <li key={index}>
-                            Name: {participant.displayName}, ID: {participant.participantId}
-                        </li>
-                    ))}
-                </ul>
-            </div>
-            {renderLog()}
-            {renderParticipants()}
+            }
+        </div>
+            
             </body>
         </>
     );
