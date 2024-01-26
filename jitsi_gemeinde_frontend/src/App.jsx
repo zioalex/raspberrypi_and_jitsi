@@ -332,7 +332,9 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
             <h1 className="app-title">Jitsi Channel {process.env.REACT_APP_LANG}</h1>
             <div className="status-container" style={{ display: 'flex', alignItems: 'center' }}>
                 <div className="button-container">
-                    <button className={`button ${localhost === true ? (isMuted ? 'red' : 'green') : 'green'}`}>{localhost === true ? (isMuted ? 'Muted' : 'Online') : 'Online'}</button>
+                    <button className={`button ${localhost === true ? (isMuted ? 'red' : 'green') : 'green'}`}>
+                        {localhost === true? (isMuted ? 'Muted' : 'Online') : ''}
+                    </button>
                 </div>
                 <div className="participant-count">
                     {participantCount}
