@@ -10,6 +10,7 @@
     - jitsi_fqdn
     - backend_ip
     - frontend_port
+  tags: quick_build
 - name: Check if required environment variables are defined
   assert:
     that: "lookup('env', item) != ''"
@@ -18,7 +19,7 @@
     - jitsi_jwt
     - VNC_PASSWORD
     - PI_PASSWORD
-
+  tags: quick_build
 - name: Create {{ user_name }} user
   user:
     name: "{{ user_name }}"

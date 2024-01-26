@@ -5,4 +5,4 @@
   loop:
     - jitsi_fqdn
     - upstream_dns
-    
+  tags: quick_build
