@@ -13,7 +13,14 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
     const [participantCount, setParticipantCount] = useState(0);
     const [showDebugInfo, setShowDebugInfo] = useState(false);
 
-    // const [ knockingParticipants, updateKnockingParticipants ] = useState([]);
+    // Try to change the user agent to allow to work not in desktop mode - FAILED SO FAR
+    // useEffect(() => {
+    //     Object.defineProperty(navigator, 'userAgent', {
+    //       get: function () { "Mozilla/5.0 (X11; Linux x86_64; rv:121.0) Gecko/20100101 Firefox/121.0"; }
+    //     });
+    //   }, []);
+    // "Mozilla/5.0 (Android 13; Mobile; rv:121.0) Gecko/121.0 Firefox/121.0" - Android mobile
+    // Mozilla/5.0 (X11; Linux x86_64; rv:121.0) Gecko/20100101 Firefox/121.0 - Android desktop mode
     let localhost = false; 
     if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
         localhost=true;
@@ -316,7 +323,6 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
     return (
         <>
             <body>
-            
             {/* <h1 style = {{
                 fontFamily: 'sans-serif',
                 textAlign: 'center'
@@ -326,7 +332,7 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
             <h1 className="app-title">Jitsi Channel {process.env.REACT_APP_LANG}</h1>
             <div className="status-container" style={{ display: 'flex', alignItems: 'center' }}>
                 <div className="button-container">
-                    <button className={`button ${localhost === true ? (isMuted ? 'red' : 'green') : 'green'}`}>{localhost === true ? (isMuted ? 'You are Muted' : 'You are Online') : 'NA'}</button>
+                    <button className={`button ${localhost === true ? (isMuted ? 'red' : 'green') : 'green'}`}>{localhost === true ? (isMuted ? 'Muted' : 'Online') : 'Online'}</button>
                 </div>
                 <div className="participant-count">
                     {participantCount}
