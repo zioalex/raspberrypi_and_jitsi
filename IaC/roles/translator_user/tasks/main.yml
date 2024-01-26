@@ -45,6 +45,7 @@
     mode: '0644'
     owner: "{{ user_name }}"
     group: "{{ user_name }}"
+  tags: x11, xinitrc
 # - name: Copy VNC service file
 #   become: true
 #   copy:
@@ -61,6 +62,7 @@
 #     mode: '0644'
 #     owner: root
 #     group: root
+
 - name: Copy x11vnc service file for {{ user_name }}
   template:
     src: x11vnc.service.j2

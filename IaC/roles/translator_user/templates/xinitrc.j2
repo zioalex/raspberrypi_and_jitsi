@@ -54,5 +54,8 @@ sed -si 's/exit_type\":\"Crashed/exit_type\":\"none/' ~/.config/chromium/Default
 echo "Start chromium Kiosk"
 ## Use PULSE_SOURCE to set the source for pulseaudio (see pacmd list-sources)
 {% if main_user is not defined or main_user != true %} 
-PULSE_SOURCE="alsa_input.usb-C-Media_Electronics_Inc._USB_Audio_Device-00.mono-fallback" {% endif %}/usr/bin/chromium  --app=http://localhost:{{ frontend_port }} # --kiosk
+PULSE_SOURCE="alsa_input.usb-C-Media_Electronics_Inc._USB_Audio_Device-00.mono-fallback"
+{% endif %}
+
+/usr/bin/chromium  --app=http://localhost:{{ frontend_port }}  --kiosk
 exec xterm
