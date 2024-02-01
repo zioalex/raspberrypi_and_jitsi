@@ -1,0 +1,41 @@
+import React, { useEffect, useRef } from 'react';
+
+function App() {
+    const jitsiContainer = useRef(null);
+
+    const handleScriptLoad = () => {
+        if (jitsiContainer.current) {
+            const options = {
+                roomName: "ukr_random_123",
+                height: 400,
+                parentNode: jitsiContainer.current,
+                interfaceConfigOverwrite: {
+                    filmStripOnly: false,
+                    SHOW_JITSI_WATERMARK: false,
+                },
+                configOverwrite: {
+                    disableDeepLinking: true,
+                    startWithAudioMuted: true,
+                    startWithVideoMuted: true,
+                    prejoinPageEnabled: false,
+                },
+            };
+
+            new window.JitsiMeetExternalAPI("meet.jit.si", options);
+        }
+    };
+
+    useEffect(() => {
+        const script = document.createElement("script");
+        script.src = "https://meet.jit.si/external_api.js";
+        script.async = true;
+        script.onload = handleScriptLoad;
+        document.body.appendChild(script);
+    }, []);
+
+    return (
+        <div ref={jitsiContainer} style={{width: '800px', height: '600px'}} />
+    );
+}
+
+export default App;
