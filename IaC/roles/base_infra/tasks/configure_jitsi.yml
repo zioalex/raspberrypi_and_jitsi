@@ -16,11 +16,14 @@
       - ca-certificates
       - curl
       - gnupg
-      - jitsi-meet
-      - jitsi-meet-prosody
-      - jitsi-videobridge2
-      - jitsi-meet-tokens
-      - jitsi-meet-web
+      - jitsi-meet=2.0.9220-1
+      - jitsi-meet-prosody=1.0.7762-1
+      - jitsi-meet-tokens=1.0.7712-1
+      - jitsi-meet-turnserver=1.0.7762-1
+      - jitsi-meet-web=1.0.7762-1
+      - jitsi-meet-web-config=1.0.7762-1
+      - jitsi-videobridge2=2.3-67-gb2d4229f-1
+      - jitsi-meet-tokens=1.0.7712-1
       - default-jdk
   notify:
     - Set Jitsi Videobridge memory limit
