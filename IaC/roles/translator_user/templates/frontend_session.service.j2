@@ -1,6 +1,6 @@
 [Unit]
 Description=X for {{ user_name }}
-After=vncserver.service
+After={% if main_user is defined and main_user == true %}vncserver.service{% elif main_user is not defined or main_user == false %}frontend_lang1_session.service{% endif %}
 
 [Service]
 Type=simple
