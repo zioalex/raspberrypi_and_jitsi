@@ -1,64 +1,68 @@
 [req]
+req_extensions = certrequest
+x509_extensions = selfsigned
 prompt = no
 distinguished_name = distinguished_name
-x509_extensions = selfsigned
-req_extensions = certrequest
-
-[distinguished_name]
-countryName = GB
-localityName = The Internet
-organizationName = Your Organisation
-organizationalUnitName = XMPP Department
-commonName = translation.sennsolutions.com
-emailAddress = xmpp@translation.sennsolutions.com
 
 [selfsigned]
 subjectAltName = @subject_alternative_name
 basicConstraints = CA:TRUE
 
-[certrequest]
-keyUsage = digitalSignature,keyEncipherment
-subjectAltName = @subject_alternative_name
-extendedKeyUsage = serverAuth,clientAuth
-basicConstraints = CA:FALSE
-
 [subject_alternative_name]
 otherName.0 = 1.3.6.1.5.5.7.8.7;IA5STRING:_xmpp-client.translation.sennsolutions.com
 otherName.1 = 1.3.6.1.5.5.7.8.7;IA5STRING:_xmpp-server.translation.sennsolutions.com
 otherName.2 = 1.3.6.1.5.5.7.8.5;FORMAT:UTF8,UTF8:translation.sennsolutions.com
-otherName.3 = 1.3.6.1.5.5.7.8.7;IA5STRING:_xmpp-server.lobby.translation.sennsolutions.com
-otherName.4 = 1.3.6.1.5.5.7.8.5;FORMAT:UTF8,UTF8:lobby.translation.sennsolutions.com
-otherName.5 = 1.3.6.1.5.5.7.8.7;IA5STRING:_xmpp-server.conference.translation.sennsolutions.com
-otherName.6 = 1.3.6.1.5.5.7.8.5;FORMAT:UTF8,UTF8:conference.translation.sennsolutions.com
-otherName.7 = 1.3.6.1.5.5.7.8.7;IA5STRING:_xmpp-server.speakerstats.translation.sennsolutions.com
-otherName.8 = 1.3.6.1.5.5.7.8.5;FORMAT:UTF8,UTF8:speakerstats.translation.sennsolutions.com
-otherName.9 = 1.3.6.1.5.5.7.8.7;IA5STRING:_xmpp-server.focus.translation.sennsolutions.com
-otherName.10 = 1.3.6.1.5.5.7.8.5;FORMAT:UTF8,UTF8:focus.translation.sennsolutions.com
-otherName.11 = 1.3.6.1.5.5.7.8.7;IA5STRING:_xmpp-server.internal.auth.translation.sennsolutions.com
-otherName.12 = 1.3.6.1.5.5.7.8.5;FORMAT:UTF8,UTF8:internal.auth.translation.sennsolutions.com
-otherName.13 = 1.3.6.1.5.5.7.8.7;IA5STRING:_xmpp-server.breakout.translation.sennsolutions.com
-otherName.14 = 1.3.6.1.5.5.7.8.5;FORMAT:UTF8,UTF8:breakout.translation.sennsolutions.com
-otherName.15 = 1.3.6.1.5.5.7.8.7;IA5STRING:_xmpp-server.endconference.translation.sennsolutions.com
-otherName.16 = 1.3.6.1.5.5.7.8.5;FORMAT:UTF8,UTF8:endconference.translation.sennsolutions.com
-otherName.17 = 1.3.6.1.5.5.7.8.7;IA5STRING:_xmpp-server.avmoderation.translation.sennsolutions.com
-otherName.18 = 1.3.6.1.5.5.7.8.5;FORMAT:UTF8,UTF8:avmoderation.translation.sennsolutions.com
-otherName.19 = 1.3.6.1.5.5.7.8.7;IA5STRING:_xmpp-server.conferenceduration.translation.sennsolutions.com
-otherName.20 = 1.3.6.1.5.5.7.8.5;FORMAT:UTF8,UTF8:conferenceduration.translation.sennsolutions.com
-otherName.21 = 1.3.6.1.5.5.7.8.7;IA5STRING:_xmpp-server.metadata.translation.sennsolutions.com
-otherName.22 = 1.3.6.1.5.5.7.8.5;FORMAT:UTF8,UTF8:metadata.translation.sennsolutions.com
-otherName.23 = 1.3.6.1.5.5.7.8.7;IA5STRING:_xmpp-client.auth.translation.sennsolutions.com
-otherName.24 = 1.3.6.1.5.5.7.8.7;IA5STRING:_xmpp-server.auth.translation.sennsolutions.com
-otherName.25 = 1.3.6.1.5.5.7.8.5;FORMAT:UTF8,UTF8:auth.translation.sennsolutions.com
+otherName.3 = 1.3.6.1.5.5.7.8.7;IA5STRING:_xmpp-server.conferenceduration.translation.sennsolutions.com
+otherName.4 = 1.3.6.1.5.5.7.8.5;FORMAT:UTF8,UTF8:conferenceduration.translation.sennsolutions.com
+otherName.5 = 1.3.6.1.5.5.7.8.7;IA5STRING:_xmpp-server.avmoderation.translation.sennsolutions.com
+otherName.6 = 1.3.6.1.5.5.7.8.5;FORMAT:UTF8,UTF8:avmoderation.translation.sennsolutions.com
+otherName.7 = 1.3.6.1.5.5.7.8.7;IA5STRING:_xmpp-server.internal.auth.translation.sennsolutions.com
+otherName.8 = 1.3.6.1.5.5.7.8.5;FORMAT:UTF8,UTF8:internal.auth.translation.sennsolutions.com
+otherName.9 = 1.3.6.1.5.5.7.8.7;IA5STRING:_xmpp-server.conference.translation.sennsolutions.com
+otherName.10 = 1.3.6.1.5.5.7.8.5;FORMAT:UTF8,UTF8:conference.translation.sennsolutions.com
+otherName.11 = 1.3.6.1.5.5.7.8.7;IA5STRING:_xmpp-client.guest.translation.sennsolutions.com
+otherName.12 = 1.3.6.1.5.5.7.8.7;IA5STRING:_xmpp-server.guest.translation.sennsolutions.com
+otherName.13 = 1.3.6.1.5.5.7.8.5;FORMAT:UTF8,UTF8:guest.translation.sennsolutions.com
+otherName.14 = 1.3.6.1.5.5.7.8.7;IA5STRING:_xmpp-server.focus.translation.sennsolutions.com
+otherName.15 = 1.3.6.1.5.5.7.8.5;FORMAT:UTF8,UTF8:focus.translation.sennsolutions.com
+otherName.16 = 1.3.6.1.5.5.7.8.7;IA5STRING:_xmpp-server.endconference.translation.sennsolutions.com
+otherName.17 = 1.3.6.1.5.5.7.8.5;FORMAT:UTF8,UTF8:endconference.translation.sennsolutions.com
+otherName.18 = 1.3.6.1.5.5.7.8.7;IA5STRING:_xmpp-server.metadata.translation.sennsolutions.com
+otherName.19 = 1.3.6.1.5.5.7.8.5;FORMAT:UTF8,UTF8:metadata.translation.sennsolutions.com
+otherName.20 = 1.3.6.1.5.5.7.8.7;IA5STRING:_xmpp-client.auth.translation.sennsolutions.com
+otherName.21 = 1.3.6.1.5.5.7.8.7;IA5STRING:_xmpp-server.auth.translation.sennsolutions.com
+otherName.22 = 1.3.6.1.5.5.7.8.5;FORMAT:UTF8,UTF8:auth.translation.sennsolutions.com
+otherName.23 = 1.3.6.1.5.5.7.8.7;IA5STRING:_xmpp-server.speakerstats.translation.sennsolutions.com
+otherName.24 = 1.3.6.1.5.5.7.8.5;FORMAT:UTF8,UTF8:speakerstats.translation.sennsolutions.com
+otherName.25 = 1.3.6.1.5.5.7.8.7;IA5STRING:_xmpp-server.breakout.translation.sennsolutions.com
+otherName.26 = 1.3.6.1.5.5.7.8.5;FORMAT:UTF8,UTF8:breakout.translation.sennsolutions.com
+otherName.27 = 1.3.6.1.5.5.7.8.7;IA5STRING:_xmpp-server.lobby.translation.sennsolutions.com
+otherName.28 = 1.3.6.1.5.5.7.8.5;FORMAT:UTF8,UTF8:lobby.translation.sennsolutions.com
 DNS.0 = translation.sennsolutions.com
-DNS.1 = lobby.translation.sennsolutions.com
-DNS.2 = conference.translation.sennsolutions.com
-DNS.3 = speakerstats.translation.sennsolutions.com
-DNS.4 = focus.translation.sennsolutions.com
-DNS.5 = internal.auth.translation.sennsolutions.com
-DNS.6 = breakout.translation.sennsolutions.com
+DNS.1 = conferenceduration.translation.sennsolutions.com
+DNS.2 = avmoderation.translation.sennsolutions.com
+DNS.3 = internal.auth.translation.sennsolutions.com
+DNS.4 = conference.translation.sennsolutions.com
+DNS.5 = guest.translation.sennsolutions.com
+DNS.6 = focus.translation.sennsolutions.com
 DNS.7 = endconference.translation.sennsolutions.com
-DNS.8 = avmoderation.translation.sennsolutions.com
-DNS.9 = conferenceduration.translation.sennsolutions.com
-DNS.10 = metadata.translation.sennsolutions.com
-DNS.11 = auth.translation.sennsolutions.com
+DNS.8 = metadata.translation.sennsolutions.com
+DNS.9 = auth.translation.sennsolutions.com
+DNS.10 = speakerstats.translation.sennsolutions.com
+DNS.11 = breakout.translation.sennsolutions.com
+DNS.12 = lobby.translation.sennsolutions.com
+
+[certrequest]
+extendedKeyUsage = serverAuth,clientAuth
+subjectAltName = @subject_alternative_name
+keyUsage = digitalSignature,keyEncipherment
+basicConstraints = CA:FALSE
+
+[distinguished_name]
+countryName = CH
+localityName = Zurich
+organizationName = IGCZ
+organizationalUnitName = XMPP Department
+commonName = translation.sennsolutions.com
+emailAddress = xmpp@translation.sennsolutions.com
 
