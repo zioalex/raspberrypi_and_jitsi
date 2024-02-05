@@ -226,7 +226,27 @@
 - name: Update the CA certificates
   become: true
   command: update-ca-certificates -f
-
+  
+- name: Create coturn dir if it does not exist
+  become: true
+  file:
+    path: /etc/coturn/certs
+    state: directory
+    owner: turnserver
+    group: root
+    mode: '0755'
+- name: Coturn cert link to /etc/coturn/certs
+  become: true
+  file:
+    src:  /etc/ssl/{{ jitsi_fqdn }}.crt
+    dest: /etc/coturn/certs/{{ jitsi_fqdn }}.crt
+    state: link
+- name: Coturn key link to /etc/coturn/certs
+  become: true
+  file:
+    src:  /etc/ssl/{{ jitsi_fqdn }}.key
+    dest: /etc/coturn/certs/{{ jitsi_fqdn }}.key
+    state: link
 - name: Copy turnserver config
   become: true
   copy:
