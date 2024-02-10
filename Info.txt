@@ -714,6 +714,20 @@ denied-peer-ip=fc00::-fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
 denied-peer-ip=fe80::-febf:ffff:ffff:ffff:ffff:ffff:ffff:ffff
 syslog
 
++++ after: /home/asurace/github/raspberrypi_and_jitsi/IaC/files/prosody/translation.sennsolutions.com.cfg.lua
+@@ -12,7 +12,7 @@
+ 
+ cross_domain_bosh = false;
+ consider_bosh_secure = true;
+-https_ports = { }; -- Remove this line to prevent listening on port 5284
++-- https_ports = { }; -- Remove this line to prevent listening on port 5284
+ 
+ -- by default prosody 0.12 sends cors headers, if you want to disable it uncomment the following (the config is available on 0.12.1)
+ --http_cors_override = {
+
+changed: [10.0.0.2]
+
+
 
 FAQ:
 If only 1 user can login and the other get disconnected, check the prosody SSL certificates. The you could be expired.

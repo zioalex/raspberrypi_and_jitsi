@@ -19,7 +19,7 @@
       - jitsi-meet=2.0.9220-1
       - jitsi-meet-prosody=1.0.7762-1
       - jitsi-meet-tokens=1.0.7712-1
-      - jitsi-meet-turnserver=1.0.7762-1
+      # - jitsi-meet-turnserver=1.0.7762-1
       - jitsi-meet-web=1.0.7762-1
       - jitsi-meet-web-config=1.0.7762-1
       - jitsi-videobridge2=2.3-67-gb2d4229f-1
@@ -197,14 +197,16 @@
     group: prosody
     mode: '0640'
 
-- name: Copy tunserver.conf
-  become: true
-  copy:
-    src: files/turnserver/turnserver.conf
-    dest: /etc/turnserver.conf
-    owner: turnserver
-    group: root
-    mode: '0644'
+# Needed only for P2P connections between clients behind NAT or firewalls.
+# Not needed for local network
+# - name: Copy tunserver.conf
+#   become: true
+#   copy:
+#     src: files/turnserver/turnserver.conf
+#     dest: /etc/turnserver.conf
+#     owner: turnserver
+#     group: root
+#     mode: '0644'
 - name: Print variable
   debug:
     var: jitsi_fqdn
@@ -227,31 +229,33 @@
   become: true
   command: update-ca-certificates -f
   
-- name: Create coturn dir if it does not exist
-  become: true
-  file:
-    path: /etc/coturn/certs
-    state: directory
-    owner: turnserver
-    group: root
-    mode: '0755'
-- name: Coturn cert link to /etc/coturn/certs
-  become: true
-  file:
-    src:  /etc/ssl/{{ jitsi_fqdn }}.crt
-    dest: /etc/coturn/certs/{{ jitsi_fqdn }}.crt
-    state: link
-- name: Coturn key link to /etc/coturn/certs
-  become: true
-  file:
-    src:  /etc/ssl/{{ jitsi_fqdn }}.key
-    dest: /etc/coturn/certs/{{ jitsi_fqdn }}.key
-    state: link
-- name: Copy turnserver config
-  become: true
-  copy:
-    src: files/coturn/turnserver.conf
-    dest: /etc/turnserver.conf
-    mode: '0644'
-    owner: turnserver
-    group: root 
+# Coturn is a TURN server that allows clients behind NAT or firewalls to establish peer-to-peer connections for audio and video communication
+# Not needed for local network
+# - name: Create coturn dir if it does not exist
+#   become: true
+#   file:
+#     path: /etc/coturn/certs
+#     state: directory
+#     owner: turnserver
+#     group: root
+#     mode: '0755'
+# - name: Coturn cert link to /etc/coturn/certs
+#   become: true
+#   file:
+#     src:  /etc/ssl/{{ jitsi_fqdn }}.crt
+#     dest: /etc/coturn/certs/{{ jitsi_fqdn }}.crt
+#     state: link
+# - name: Coturn key link to /etc/coturn/certs
+#   become: true
+#   file:
+#     src:  /etc/ssl/{{ jitsi_fqdn }}.key
+#     dest: /etc/coturn/certs/{{ jitsi_fqdn }}.key
+#     state: link
+# - name: Copy turnserver config
+#   become: true
+#   copy:
+#     src: files/coturn/turnserver.conf
+#     dest: /etc/turnserver.conf
+#     mode: '0644'
+#     owner: turnserver
+#     group: root 
