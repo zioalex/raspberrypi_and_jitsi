@@ -610,17 +610,17 @@ See for sure /etc/default/ufw /etc/ufw/sysctl.conf  and /etc/ufw/before.rules
 - Become a Moderator Button - Done with Secure Domain
 - wpad improvements?
 - Shutdown confirmation
-- Unmute myself
+- Unmute myself - Done
 
 # BROKEN:
 Feb 04 19:04:22 translation pulseaudio[1407]: ALSA woke us up to write new data to the device, but there was actually nothing to write.                      
 Feb 04 19:04:22 translation pulseaudio[1407]: Most likely this is a bug in the ALSA driver 'snd_bcm2835'. Please report this issue to the ALSA developers.   
 Feb 04 19:04:22 translation pulseaudio[1407]: We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() returned 0 or another value < min_avail.                                                                                                                                                          
 
-Feb 04 19:05:33 translation turnserver[1044]: 133: : ERROR: check_stun_auth: Cannot find credentials of user <1707159926>          
-Feb 04 19:05:33 translation turnserver[1044]: 133: : ERROR: check_stun_auth: Cannot find credentials of user <1707159926>          
-Feb 04 19:05:33 translation turnserver[1044]: 133: : ERROR: check_stun_auth: Cannot find credentials of user <1707159926>          
-Feb 04 19:05:35 translation turnserver[1044]: 135: : ERROR: check_stun_auth: Cannot find credentials of user <1707159867>          
+~~Feb 04 19:05:33 translation turnserver[1044]: 133: : ERROR: check_stun_auth: Cannot find credentials of user <1707159926>~~          
+~~Feb 04 19:05:33 translation turnserver[1044]: 133: : ERROR: check_stun_auth: Cannot find credentials of user <1707159926>~~          
+~~Feb 04 19:05:33 translation turnserver[1044]: 133: : ERROR: check_stun_auth: Cannot find credentials of user <1707159926>~~          
+~~Feb 04 19:05:35 translation turnserver[1044]: 135: : ERROR: check_stun_auth: Cannot find credentials of user <1707159867>~~          
 
 Disable alsa services
 
@@ -628,6 +628,25 @@ Disable cups systemctl disable snap.cups.cupsd.service
 systemctl disable snap.cups.cups-browsed.service
 systemctl disable snapd.socket 
 systemctl disable snapd.service
+systemctl disable snap-bare-5.mount
+systemctl disable snap-chromium-2626.mount 
+systemctl disable snap-chromium-2667.mount 
+systemctl disable snap-core20-2019.mount 
+systemctl disable snap-core20-2107.mount 
+systemctl disable snap-core22-1035.mount 
+systemctl disable snap-core22-867.mount 
+systemctl disable snap-cups-1025.mount 
+systemctl disable snap-cups-981.mount 
+systemctl disable snap-gnome\\x2d42\\x2d2204-127.mount 
+systemctl disable snap-gnome\\x2d42\\x2d2204-143.mount 
+systemctl disable snap-gtk\\x2dcommon\\x2dthemes-1535.mount 
+systemctl disable snap-lxd-24326.mount 
+systemctl disable snap-lxd-26884.mount 
+systemctl disable snap-snapd-20298.mount 
+systemctl disable snap-snapd-20674.mount 
+systemctl disable lxd-agent.service
+systemctl disable snap.lxd.activate.service
+systemctl disable snapd.apparmor.service
 
 # Auto recreate Prosody certs
 # how to create the certificate files on the fly
