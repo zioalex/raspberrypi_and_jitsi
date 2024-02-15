@@ -6,3 +6,4 @@ Legacy_WIP/jitsi_control/
 **/secrets.env
 **/.~lock.*
 IaC/files/ssl_certs/*.key
+certs/*

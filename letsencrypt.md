@@ -117,3 +117,5 @@ The key is now in ~/letsencrypt/archive/translation.sennsolutions.com
   343  chmod +x getssl 
   345  history |grep getssl
 
+Configure the adhoc user getssl to do not risk to expose anything else <-- Can be improved creating a chroot setup >
+
