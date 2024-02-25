@@ -229,33 +229,32 @@
   become: true
   command: update-ca-certificates -f
   
-# Coturn is a TURN server that allows clients behind NAT or firewalls to establish peer-to-peer connections for audio and video communication
-# Not needed for local network
-# - name: Create coturn dir if it does not exist
-#   become: true
-#   file:
-#     path: /etc/coturn/certs
-#     state: directory
-#     owner: turnserver
-#     group: root
-#     mode: '0755'
-# - name: Coturn cert link to /etc/coturn/certs
-#   become: true
-#   file:
-#     src:  /etc/ssl/{{ jitsi_fqdn }}.crt
-#     dest: /etc/coturn/certs/{{ jitsi_fqdn }}.crt
-#     state: link
-# - name: Coturn key link to /etc/coturn/certs
-#   become: true
-#   file:
-#     src:  /etc/ssl/{{ jitsi_fqdn }}.key
-#     dest: /etc/coturn/certs/{{ jitsi_fqdn }}.key
-#     state: link
-# - name: Copy turnserver config
-#   become: true
-#   copy:
-#     src: files/coturn/turnserver.conf
-#     dest: /etc/turnserver.conf
-#     mode: '0644'
-#     owner: turnserver
-#     group: root 
+# Coturn is a TURN server that allows clients behind NAT or firewalls to establish peer-to-peer connections for audio and video communication. It looks like it is needed when we have multiple Jitsi channels running contemporaneously.
+- name: Create coturn dir if it does not exist
+  become: true
+  file:
+    path: /etc/coturn/certs
+    state: directory
+    owner: turnserver
+    group: root
+    mode: '0755'
+- name: Coturn cert link to /etc/coturn/certs
+  become: true
+  file:
+    src:  /etc/ssl/{{ jitsi_fqdn }}.crt
+    dest: /etc/coturn/certs/{{ jitsi_fqdn }}.crt
+    state: link
+- name: Coturn key link to /etc/coturn/certs
+  become: true
+  file:
+    src:  /etc/ssl/{{ jitsi_fqdn }}.key
+    dest: /etc/coturn/certs/{{ jitsi_fqdn }}.key
+    state: link
+- name: Copy turnserver config
+  become: true
+  copy:
+    src: files/coturn/turnserver.conf
+    dest: /etc/turnserver.conf
+    mode: '0644'
+    owner: turnserver
+    group: root 
