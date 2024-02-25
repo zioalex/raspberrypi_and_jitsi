@@ -16,28 +16,37 @@
       - ca-certificates
       - curl
       - gnupg
-      - jitsi-meet=2.0.9220-1
-      - jitsi-meet-prosody=1.0.7762-1
-      - jitsi-meet-tokens=1.0.7712-1
+      - jitsi-meet=2.0.9258-1
+      - jitsi-meet-prosody=1.0.7790-1
+      - jitsi-meet-tokens=1.0.7790-1
+      - jitsi-meet-turnserver=1.0.7790-1
+      - jitsi-meet-web=1.0.7790-1
+      - jitsi-meet-web-config=1.0.7790-1
+      - jitsi-videobridge2=2.3-74-ga015be96-1
+      - jicofo=1.0-1066-1
+      - lua-basexx=0.4.1-jitsi1
+      # - jitsi-meet=2.0.9220-1
+      # - jitsi-meet-prosody=1.0.7762-1
+      # - jitsi-meet-tokens=1.0.7712-1
       # - jitsi-meet-turnserver=1.0.7762-1
-      - jitsi-meet-web=1.0.7762-1
-      - jitsi-meet-web-config=1.0.7762-1
-      - jitsi-videobridge2=2.3-67-gb2d4229f-1
-      - jitsi-meet-tokens=1.0.7712-1
+      # - jitsi-meet-web=1.0.7762-1
+      # - jitsi-meet-web-config=1.0.7762-1
+      # - jitsi-videobridge2=2.3-67-gb2d4229f-1
+      # - jitsi-meet-tokens=1.0.7712-1
       - default-jdk
-  notify:
-    - Set Jitsi Videobridge memory limit
-    - Set Jicofo memory limit
+  # notify:
+  #   - Set Jitsi Videobridge memory limit
+  #   - Set Jicofo memory limit
 
 - name: Set Jitsi Videobridge memory limit
   lineinfile:
     path: /etc/jitsi/videobridge/config
-    line: 'VIDEOBRIDGE_MAX_MEMORY="1024m"'
+    line: 'VIDEOBRIDGE_MAX_MEMORY="2048m"'
 
 - name: Set Jicofo memory limit
   lineinfile:
     path: /etc/jitsi/jicofo/config
-    line: 'JICOFO_MAX_MEMORY="1024m"'
+    line: 'JICOFO_MAX_MEMORY="2048m"'
 
 - name: "Create {{ jitsi_fqdn }}-config.js"
   become: true
@@ -109,6 +118,7 @@
 # prosodyctl cert generate  {{ jitsi_fqdn }} 
 # prosodyctl cert generate auth.{{ jitsi_fqdn }}
 # prosodyctl reload
+# TOFIX: Create a script to automate the certificate creation on shutdown only if the certificate will expire in 3 months 
 - name: Copy certificate files to /var/lib/prosody/
   become: true
   copy:
@@ -188,6 +198,8 @@
     owner: root
     group: prosody
 
+# TOFIX: Find the correct way to register rhe users with prosodyctl register commands:
+# See https://wiki.archlinux.org/title/jitsi-meet . Where is the secret stored?
 - name: Copy the auth.{{ jitsi_fqdn }} auth files
   become: true
   copy:
@@ -197,16 +209,6 @@
     group: prosody
     mode: '0640'
 
-# Needed only for P2P connections between clients behind NAT or firewalls.
-# Not needed for local network
-# - name: Copy tunserver.conf
-#   become: true
-#   copy:
-#     src: files/turnserver/turnserver.conf
-#     dest: /etc/turnserver.conf
-#     owner: turnserver
-#     group: root
-#     mode: '0644'
 - name: Print variable
   debug:
     var: jitsi_fqdn
