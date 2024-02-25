@@ -1,8 +1,21 @@
-- name: Add ip address to /etc/hosts
-  lineinfile:
+# - name: Add ip address to /etc/hosts
+#   lineinfile:
+#     path: /etc/hosts
+#     line: "10.0.0.2 {{ jitsi_fqdn }}"
+#     state: present
+#   tags: hosts
+# Make Jitsi communication via localhost
+- name: Update ipv4 localhost in /etc/hosts file
+  ansible.builtin.lineinfile:
     path: /etc/hosts
-    line: "10.0.0.2 {{ jitsi_fqdn }}"
-    state: present
+    regexp: '^(127\.0\.0\.1 localhost)$'
+    line: '127.0.0.1 localhost translation.sennsolutions.com auth.translation.sennsolutions.com translation'
+  tags: hosts
+- name: Update ipv6 localhost in /etc/hosts file
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: '^(::1 ip6-localhost ip6-loopback)$'
+    line: '::1 ip6-localhost ip6-loopback translation.sennsolutions.com auth.translation.sennsolutions.com'
   tags: hosts
 - name: Install OpenJDK 8
   apt:

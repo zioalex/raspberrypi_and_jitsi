@@ -4,9 +4,7 @@
 - include_tasks: install_and_configure_software.yml
 - include_tasks: dnsmasq.yml
 - include_tasks: configure_jitsi.yml
-- include_tasks: enable_jitsi_services.yml
-
-  
+- include_tasks: enable_jitsi_services.yml  
 
 
 
