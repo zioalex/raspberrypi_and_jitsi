@@ -57,6 +57,12 @@
 
 - meta: flush_handlers
 
+- name: Uncomment no-hosts in /etc/dnsmasq.conf
+  ansible.builtin.lineinfile:
+    path: /etc/dnsmasq.conf
+    regexp: '^#no-hosts'
+    line: 'no-hosts'
+    
 - name: Configure dnsmasq
   blockinfile:
     path: /etc/dnsmasq.conf
