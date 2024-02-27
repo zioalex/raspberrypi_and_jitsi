@@ -1537,9 +1537,9 @@ var config = {
     // },
 
     // Logging
-    // logging: {
-    //      // Default log level for the app and lib-jitsi-meet.
-    //      defaultLogLevel: 'trace',
+    logging: {
+         // Default log level for the app and lib-jitsi-meet.
+         defaultLogLevel: 'error',
     //      // Option to disable LogCollector (which stores the logs on CallStats).
     //      //disableLogCollector: true,
     //      // Individual loggers are customizable.
@@ -1548,7 +1548,7 @@ var config = {
     //      'modules/RTC/TraceablePeerConnection.js': 'info',
     //      'modules/statistics/CallStats.js': 'info',
     //      'modules/xmpp/strophe.util.js': 'log',
-    // },
+    },
 
     // Application logo url
     // defaultLogoUrl: 'images/watermark.svg',
