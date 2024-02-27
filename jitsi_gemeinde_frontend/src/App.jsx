@@ -1,6 +1,6 @@
 import { JitsiMeeting } from '@jitsi/react-sdk';
 import React, { useRef, useState, useEffect } from 'react';
-import "./App.css"; //"./style.css";
+import "./App.css";
 
 const jitsiDomain = process.env.REACT_APP_JITSI_FQDN;
 const backendIp = process.env.REACT_APP_BACKEND_IP;
@@ -8,27 +8,24 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
   const App = () => {
     const apiRef = useRef();
     const [ logItems, updateLog ] = useState([]);
-    const [ showNew ] = useState(false);
     const [participants, setParticipants] = useState([]);
     const [participantCount, setParticipantCount] = useState(0);
     const [showDebugInfo, setShowDebugInfo] = useState(false);
+    const [localhost, setLocalhost] = useState(false);
 
-    // Try to change the user agent to allow to work not in desktop mode - FAILED SO FAR
-    // useEffect(() => {
-    //     Object.defineProperty(navigator, 'userAgent', {
-    //       get: function () { "Mozilla/5.0 (X11; Linux x86_64; rv:121.0) Gecko/20100101 Firefox/121.0"; }
-    //     });
-    //   }, []);
-    // "Mozilla/5.0 (Android 13; Mobile; rv:121.0) Gecko/121.0 Firefox/121.0" - Android mobile
-    // Mozilla/5.0 (X11; Linux x86_64; rv:121.0) Gecko/20100101 Firefox/121.0 - Android desktop mode
-    let localhost = false; 
-    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
-        localhost=true;
-        console.log("The app is running on localhost");
-    } else {
-        localhost=false;
-        console.log("The app is not running on localhost");
-    }
+    useEffect(() => {
+        if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+            setLocalhost(true);
+            console.log("The app is running on localhost");
+        } else {
+            setLocalhost(false);
+            console.log("The app is not running on localhost");
+        }
+        // TOFIX: The debug mode doesn't work locally from the raspberrypi. I must connect remotely to 10.0.0.2:3000?debug=true.
+        const urlParams = new URLSearchParams(window.location.search);
+        const debug = urlParams.get('debug') === 'true';
+        console.log('Debug mode:', debug, urlParams);
+    }, []); // 👈️ empty dependencies array
 
     const printEventOutput = payload => {
         updateLog(items => [ ...items, JSON.stringify(payload) ]);
@@ -50,58 +47,20 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
         updateLog(items => [ ...items, `you have ${payload.unreadCount} unread messages` ])
     };
 
-    // const handleKnockingParticipant = payload => {
-    //     updateLog(items => [ ...items, JSON.stringify(payload) ]);
-    //     updateKnockingParticipants(participants => [ ...participants, payload?.participant ])
-    // };
-
-    // const resolveKnockingParticipants = condition => {
-    //     knockingParticipants.forEach(participant => {
-    //         apiRef.current.executeCommand('answerKnockingParticipant', participant?.id, condition(participant));
-    //         updateKnockingParticipants(participants => participants.filter(item => item.id === participant.id));
-    //     });
-    // };
-    
-    //const toggleMuteAll = () => {
-    //setMuteAll(!muteAll);
-  //};
   
-
-
     const handleJitsiIFrameRef1 = iframeRef => {
-        // iframeRef.style.marginTop = '10px';
-        // iframeRef.style.border = '10px solid #3d3d3d';
-        // iframeRef.style.background = '#3d3d3d';
         iframeRef.style.height = '80px';
         iframeRef.style.width = '200px';
-        //iframeRef.style.marginBottom = '10px';
-    };
-
-    const handleJitsiIFrameRef2 = iframeRef => {
-        iframeRef.style.marginTop = '10px';
-        iframeRef.style.border = '10px dashed #df486f';
-        iframeRef.style.padding = '5px';
-        iframeRef.style.height = '400px';
-    };
-
-    const handleJaaSIFrameRef = iframeRef => {
-        iframeRef.style.border = '10px solid #3d3d3d';
-        iframeRef.style.background = '#3d3d3d';
-        iframeRef.style.height = '400px';
-        iframeRef.style.marginBottom = '20px';
     };
 
     const handleApiReady = apiObj => {
         apiRef.current = apiObj;
-        // apiRef.current.on('knockingParticipant', handleKnockingParticipant);
         apiRef.current.on('audioMuteStatusChanged', payload => handleAudioStatusChange(payload, 'audio'));
         apiRef.current.on('videoMuteStatusChanged', payload => handleAudioStatusChange(payload, 'video'));
         apiRef.current.on('raiseHandUpdated', printEventOutput);
         apiRef.current.on('titleViewChanged', printEventOutput);
         apiRef.current.on('chatUpdated', handleChatUpdates);
-        // apiRef.current.executeCommand('displayName', 'translator');
-        // apiRef.current.executeCommand('unmute')
-        //apiRef.current.on('knockingParticipant', handleKnockingParticipant);
+        // apiRef.current.setLogLevel('error');
     };
 
     const handleReadyToClose = () => {
@@ -110,11 +69,14 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
     };
 
     
-    //const generateRoomName = () => `JitsiMeetRoomNo${Math.random() * 100}-${Date.now()}`;
     const generateRoomName = () => process.env.REACT_APP_LANG; // Take this on runtime `ukr`;
 
 
     useEffect(() => {
+        /**
+         * Interval for updating participants information.
+         * @type {number}
+         */
         const interval = setInterval(() => {
             const info = apiRef.current.getParticipantsInfo();
             setParticipants(info);
@@ -126,68 +88,61 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
     const [isMutingAll] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
 
-    // useEffect(() => {
-    //     const interval = setInterval(() => {
-    //         apiRef.current.addEventListener('audioMuteStatusChanged', (event) => {
-    //             console.log('audioMuteStatusChanged event fired', event);
-    //             setIsMuted(event.muted);
-    //         });
-    //     }, 1000);
-    //     return () => clearInterval(interval);
-
-    // }, [apiRef]);
-
+    // Set the variable isMuted if the audio is muted
     useEffect(() => {
-        const interval = setInterval(() => {
-            apiRef.current.isAudioMuted().then(muted => {
-                console.log('isAudioMuted', muted);
-                setIsMuted(muted);
-            });
-    
-            // apiRef.current.addEventListener('audioMuteStatusChanged', (event) => {
-            //     console.log('isAudioMuted event', event.muted);
-            //     setIsMuted(event.muted);
-            // });
-        }, 500);
-        return () => clearInterval(interval);
-    }, [apiRef]);
+        if (localhost) { // Check if running on localhost
+            const interval = setInterval(() => {
+                apiRef.current.isAudioMuted().then(muted => {
+                    if (new URLSearchParams(window.location.search).get('debug') === 'true') {
+                        console.log('isAudioMuted', muted);
+                    }
+                    setIsMuted(muted);
+                });  
+            }, 500);
+            return () => clearInterval(interval);
+        }
+    });
 
-    const handleUnmute = () => {
-        if (isMuted) {
-            console.log('Executing toggleAudio command');
-            apiRef.current.executeCommand('toggleAudio');
+    const unmuteModerator = () => {
+        if (apiRef.current && localhost) {
+            // Check if the participant is muted.
+            apiRef.current.isAudioMuted().then((muted) => {
+            // If the participant is muted, unmute them.
+            if (muted) {
+                apiRef.current.executeCommand('toggleAudio');
+                if (new URLSearchParams(window.location.search).get('debug') === 'true') {
+                    console.log('Unmuting', muted);
+                }
+            }
+            });
+        }
+      };
+    
+    // Call the unmuteModerator method when the component mounts.
+    useEffect(() => {
+        unmuteModerator();
+    });
+
+    const newParticipant = () => {
+        if (apiRef.current) {
+            apiRef.current.addEventListener('participantJoined', (event) => {
+                if (localhost) {
+                        const participantId = event.id;
+                        setTimeout(() => {
+                            //apiRef.current.executeCommand('setAudioMute', participantId, true);
+                            apiRef.current.executeCommand('muteEveryone');
+                            if (new URLSearchParams(window.location.search).get('debug') === 'true') {
+                                console.log(`A new participant with ID ${participantId} joined the meeting - Muting`);
+                            }
+                        }, 500);
+                    }
+                });
         }
     };
 
     useEffect(() => {
-        if (isMuted && localhost) { 
-            console.log('Executing Automatic unMute command');
-            setTimeout(() => {
-                apiRef.current.executeCommand('toggleAudio');
-            }, 100);
-        }
-
+        newParticipant();
     });
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            apiRef.current.addEventListener('participantJoined', (event) => {
-                if (localhost) {
-                    const participantId = event.id;
-                    setTimeout(() => {
-                        //apiRef.current.executeCommand('setAudioMute', participantId, true);
-                        apiRef.current.executeCommand('muteEveryone');
-                        console.log(`A new participant with ID ${participantId} joined the meeting - Muting`);
-                    }, 500);
-                }
-            });
-        }, 1000);
-
-        return () => {
-            apiRef.current.removeEventListener('participantJoined')
-            clearInterval(interval);;
-        };
-    }, []);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -206,33 +161,26 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
         const urlParams = new URLSearchParams(window.location.search);
         const debug = urlParams.get('debug');
         if (debug === 'true') {
+            console.log('DEBUG MODE ENABLED');
             setShowDebugInfo(true);
         }
-    }, []);
+    }, [setShowDebugInfo]);
+
     const handleButton1Click = () => {
         window.location.reload(true)
     };
 
     const handleButton2Click = () => {
-        apiRef.current.executeCommand('muteEveryone');
+        if (apiRef.current) {
+            console.log('Mute everyOne');
+            apiRef.current.executeCommand('muteEveryone');
             const participants = apiRef.current.getParticipantsInfo();
             participants.forEach(participant => {
                 if (participant.displayName === 'translator') {
-                    // Send the mute status to your server
                     console.log(`The participant ${participant.participantId}  is muted. Sending to server`);
-
-                    fetch('/api/muteStatus', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            userId: apiRef.current.getMyUserId(),
-                            isMuted: true,
-                        }),
-                    });
                 }
             });
+        }
     };
             
     const renderButtons = () => {
@@ -267,11 +215,6 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
             Loading..
         </div>
     );
-
-    // const renderParticipants = apiObj => (
-        // apiRef.current = apiObj;
-        // apiRef.current.on('getParticipants', printEventOutput);
-    // );
 
     const renderParticipants = () => {
         <div style = {{
@@ -323,11 +266,6 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
     return (
         <>
             <body>
-            {/* <h1 style = {{
-                fontFamily: 'sans-serif',
-                textAlign: 'center'
-            }}>
-            </h1> */}
             <div className="app-container">
             <h1 className="app-title">Jitsi Channel {process.env.REACT_APP_LANG}</h1>
             <div className="status-container" style={{ display: 'flex', alignItems: 'center' }}>
