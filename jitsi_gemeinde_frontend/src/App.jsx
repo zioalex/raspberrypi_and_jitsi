@@ -107,13 +107,20 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
         if (apiRef.current && localhost) {
             // Check if the participant is muted.
             apiRef.current.isAudioMuted().then((muted) => {
-            // If the participant is muted, unmute them.
-            if (muted) {
-                apiRef.current.executeCommand('toggleAudio');
-                if (new URLSearchParams(window.location.search).get('debug') === 'true') {
-                    console.log('Unmuting', muted);
+                // If the participant is muted, unmute them.
+                if (muted) {
+                    // unmute the participant only if really muted. Try to avoid unmute/mute loop.
+                    apiRef.current.isAudioMuted().then(isMuted => {
+                        if (isMuted) {
+                            apiRef.current.executeCommand('toggleAudio');
+                            if (new URLSearchParams(window.location.search).get('debug') === 'true') {
+                                console.log('Unmuting', muted);
+                            }
+                        } else {
+                            console.log('Audio is Not muted');
+                        }
+                    });
                 }
-            }
             });
         }
       };
