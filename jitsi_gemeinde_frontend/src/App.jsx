@@ -118,32 +118,43 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
             });
         }
       };
-    
+          
     // Call the unmuteModerator method when the component mounts.
     useEffect(() => {
         unmuteModerator();
     });
 
-    const newParticipant = () => {
-        if (apiRef.current) {
-            apiRef.current.addEventListener('participantJoined', (event) => {
-                if (localhost) {
-                        const participantId = event.id;
-                        setTimeout(() => {
-                            //apiRef.current.executeCommand('setAudioMute', participantId, true);
-                            apiRef.current.executeCommand('muteEveryone');
-                            if (new URLSearchParams(window.location.search).get('debug') === 'true') {
-                                console.log(`A new participant with ID ${participantId} joined the meeting - Muting`);
-                            }
-                        }, 500);
-                    }
-                });
-        }
-    };
+    // const newParticipant = () => {
+    //     if (apiRef.current) {
+    //         apiRef.current.addEventListener('participantJoined', (event) => {
+    //             if (localhost) {
+    //                     const participantId = event.id;
+    //                     //apiRef.current.executeCommand('setAudioMute', participantId, true);
+    //                     apiRef.current.executeCommand('muteEveryone');
+    //                     if (new URLSearchParams(window.location.search).get('debug') === 'true') {
+    //                         console.log(`A new participant with ID ${participantId} joined the meeting - Muting`);
+    //                     }
+    //                 }
+    //             });
+    //     }
+    // };
 
     useEffect(() => {
-        newParticipant();
-    });
+        if (apiRef.current) {
+            const intervalId = setInterval(() => {
+                apiRef.current.executeCommand('muteEveryone');
+                console.log('Mute everyone every 5 secs');
+            }, 5000); // 5000 milliseconds = 5 seconds
+            return () => clearInterval(intervalId);
+        }
+    }, [apiRef.current]);
+
+    // useEffect(() => {
+    //     const interval = setInterval(() => {
+    //         newParticipant();
+    //     }, 1000);
+    //     return () => clearInterval(interval);
+    // });
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -293,7 +304,8 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
                 jwt={process.env.REACT_APP_JWT}
                 configOverwrite={{
                     subject: '{process.env.REACT_APP_LANG}',
-                    hideConferenceSubject: false
+                    hideConferenceSubject: false,
+                    // websocket: 'wss://translation.sennsolutions.com/xmpp-websocket',
                 }}
                 onApiReady={handleApiReady}
                 onReadyToClose={handleReadyToClose}
@@ -314,8 +326,8 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
                             </li>
                         ))}
                     </ul>
-                    {renderLog()}
-                    {renderParticipants()}
+                    {/* {renderLog()}
+                    {renderParticipants()} */}
                 </div>
             }
         </div>
