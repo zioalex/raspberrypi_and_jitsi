@@ -20,13 +20,13 @@
     state: reloaded
 
 # Coturn is needed for direct P2P connections between clients. It is used as a STUN/TURN server.
-# In a locat network, it is not needed. 
+# It is need also a local network
 - name: Restart Coturn
   become: true
   systemd:
     name: coturn
-    state: stopped
-    enabled: no
+    state: started
+    enabled: yes
 
 - name: Enable and start Nginx service
   systemd:
