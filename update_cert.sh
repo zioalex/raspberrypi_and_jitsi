@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -xeou pipefail
 # If the letsencrypt certificate is created by getssl copy it with - EXECUTE AS ROOT
-# cp /home/getssl/.getssl/translation.sennsolutions.com/fullchain.crt /home/getssl/.getssl/translation.sennsolutions.com/translation .sennsolutions.com.key /home/asurace/github/raspberrypi_and_jitsi/certs; chown asurace:asurace -R /home/asurace/github/raspberrypi_and_jitsi/certs
+# cp /home/getssl/.getssl/translation.sennsolutions.com/fullchain.crt /home/getssl/.getssl/translation.sennsolutions.com/translation.sennsolutions.com.key /home/asurace/github/raspberrypi_and_jitsi/certs; chown asurace:asurace -R /home/asurace/github/raspberrypi_and_jitsi/certs
 
 # This script is used to update the certificate of the Jitsi server
 
