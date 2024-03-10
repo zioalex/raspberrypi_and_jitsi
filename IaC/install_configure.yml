@@ -220,14 +220,18 @@
         - Set Jicofo memory limit
 
     - name: Set Jitsi Videobridge memory limit
-      lineinfile:
+      become: true
+      replace:
         path: /etc/jitsi/videobridge/config
-        line: 'VIDEOBRIDGE_MAX_MEMORY="1024m"'
+        regexp: '^VIDEOBRIDGE_MAX_MEMORY=.*$'
+        line: 'VIDEOBRIDGE_MAX_MEMORY="2048"'
 
     - name: Set Jicofo memory limit
-      lineinfile:
+      become: true
+      replace:
         path: /etc/jitsi/jicofo/config
-        line: 'JICOFO_MAX_MEMORY="1024m"'
+        regexp: '^JICOFO_MAX_MEMORY=.*$'
+        line: 'JICOFO_MAX_MEMORY="2048m"'
 
     - name: Create {{ jitsi_hostname }}-config.js
       become: true

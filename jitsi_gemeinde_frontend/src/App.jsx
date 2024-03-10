@@ -140,14 +140,14 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
     // };
 
     useEffect(() => {
-        if (apiRef.current) {
+        if (apiRef.current && localhost) {
             const intervalId = setInterval(() => {
                 apiRef.current.executeCommand('muteEveryone');
                 console.log('Mute everyone every 5 secs');
             }, 5000); // 5000 milliseconds = 5 seconds
             return () => clearInterval(intervalId);
         }
-    });
+    }, [apiRef.current]); // Node says that apiRef.current is not needed here, but it is. Otherwise, the function is not called.
 
     // useEffect(() => {
     //     const interval = setInterval(() => {
