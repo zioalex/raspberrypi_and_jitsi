@@ -1,23 +1,40 @@
+import sys
+import os
 import time
+import random
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-import random
+
 
 options = Options()
 options.add_argument("--headless")  # Run Chrome in headless mode
 options.add_argument("--disable-gpu")  # Applicable to windows os only
 options.add_argument("--no-sandbox")  # Bypass OS security model
 options.add_argument("--disable-dev-shm-usage")  # Overcome limited resource problems
+
+# Check if command line argument is provided
+if len(sys.argv) > 1:
+  channel = sys.argv[1]
+# Check if environment variable is set
+elif 'URL' in os.environ:
+  channel = os.environ['CHANNEL']
+# Default to "https://translation.sennsolutions.com/ukr"
+else:
+  channel = "ukr"
+
+num_tabs = int(sys.argv[2]) if len(sys.argv) > 2 else 30
+
+url = f"https://translation.sennsolutions.com/{channel}"
+
 options.add_argument("--use-fake-ui-for-media-stream")  # Enable fake UI for media stream
 options.add_argument("--use-fake-device-for-media-stream")  # Use fake device for media stream (fake video)
 
 driver = webdriver.Chrome(options=options)
 
-url = "https://translation.sennsolutions.com/ukr"
-num_tabs = 30
+
 load_times = []
 load_times_dict = {}
 
