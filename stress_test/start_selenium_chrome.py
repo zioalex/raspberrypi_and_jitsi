@@ -1,25 +1,20 @@
 import time
 from selenium import webdriver
-from selenium.webdriver.firefox.options import Options
-from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 import random
 
-
 options = Options()
-#options.setHeadless(True);
-options.headless = True
+options.add_argument("--headless")  # Run Chrome in headless mode
+options.add_argument("--disable-gpu")  # Applicable to windows os only
+options.add_argument("--no-sandbox")  # Bypass OS security model
+options.add_argument("--disable-dev-shm-usage")  # Overcome limited resource problems
+options.add_argument("--use-fake-ui-for-media-stream")  # Enable fake UI for media stream
+options.add_argument("--use-fake-device-for-media-stream")  # Use fake device for media stream (fake video)
 
-profile = FirefoxProfile()
-profile.set_preference("media.navigator.permission.disabled", True)
-profile.set_preference("media.navigator.streams.fake", True)
-profile.set_preference("browser.tabs.remote.autostart", True)  # Configure browser to open multiple tabs without limit
-
-options.profile = profile
-
-driver = webdriver.Firefox(options=options)
+driver = webdriver.Chrome(options=options)
 
 url = "https://translation.sennsolutions.com/ukr"
 num_tabs = 30
@@ -28,12 +23,14 @@ load_times_dict = {}
 
 for _ in range(num_tabs):
   start_time = time.time()
-  print(f"Opening window {_ + 1}...")
+  url_custom = f"{url}#userInfo.displayName=test_{_}" # this doesn't work may be with a JWT token?
+  print(f"Opening window {_ + 1}...url_custom: {url_custom}")
   driver.execute_script(f"window.open('');")
   # time.sleep(5)
-  print(driver.window_handles)
+  # print(driver.window_handles)
   driver.switch_to.window(driver.window_handles[-1])
-  driver.get(url)  # Load the URL in the new tab
+  
+  driver.get(url_custom)  # Load the URL in the new tab
 
   # Wait for the page to fully load
   # WebDriverWait(driver, 60).until(EC.presence_of_element_located((By.TAG_NAME, 'body')))
