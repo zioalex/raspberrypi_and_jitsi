@@ -147,7 +147,7 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
             }, 5000); // 5000 milliseconds = 5 seconds
             return () => clearInterval(intervalId);
         }
-    }, [apiRef.current]);
+    });
 
     // useEffect(() => {
     //     const interval = setInterval(() => {
@@ -206,18 +206,19 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
         );
     };
 
-    const renderLog = () => logItems.map(
-        (item, index) => (
-            <div
-                style = {{
-                    fontFamily: 'monospace',
-                    padding: '5px'
-                }}
-                key = { index }>
-                {item}
-            </div>
-        )
-    );
+    // TOFIX: To test the impact of this
+    // const renderLog = () => logItems.map(
+    //     (item, index) => (
+    //         <div
+    //             style = {{
+    //                 fontFamily: 'monospace',
+    //                 padding: '5px'
+    //             }}
+    //             key = { index }>
+    //             {item}
+    //         </div>
+    //     )
+    // );
 
     const renderSpinner = () => (
         <div style = {{
@@ -228,14 +229,15 @@ const backendIp = process.env.REACT_APP_BACKEND_IP;
         </div>
     );
 
-    const renderParticipants = () => {
-        <div style = {{
-            fontFamily: 'sans-serif',
-            textAlign: 'center'
-        }}> 
-            TEST....How to get the number of participants 
-        </div>
-    };
+    // TOFIX: To test the impact of this
+    // const renderParticipants = () => {
+    //     <div style = {{
+    //         fontFamily: 'sans-serif',
+    //         textAlign: 'center'
+    //     }}> 
+    //         TEST....How to get the number of participants 
+    //     </div>
+    // };
 
     const [isShuttingDown, setIsShuttingDown] = useState(false);
     const handleShutdown = () => {
