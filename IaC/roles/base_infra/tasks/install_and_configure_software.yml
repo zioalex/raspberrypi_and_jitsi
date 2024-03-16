@@ -9,14 +9,14 @@
   ansible.builtin.lineinfile:
     path: /etc/hosts
     regexp: '^(127\.0\.0\.1 localhost)$'
-    line: '127.0.0.1 localhost translation.sennsolutions.com auth.translation.sennsolutions.com translation'
+    line: '127.0.0.1 localhost translation'
   tags: hosts
-- name: Update ipv6 localhost in /etc/hosts file
-  ansible.builtin.lineinfile:
-    path: /etc/hosts
-    regexp: '^(::1 ip6-localhost ip6-loopback)$'
-    line: '::1 ip6-localhost ip6-loopback translation.sennsolutions.com auth.translation.sennsolutions.com'
-  tags: hosts
+# - name: Update ipv6 localhost in /etc/hosts file
+#   ansible.builtin.lineinfile:
+#     path: /etc/hosts
+#     regexp: '^(::1 ip6-localhost ip6-loopback)$'
+#     line: '::1 ip6-localhost ip6-loopback'
+  # tags: hosts
 - name: Install OpenJDK 8
   apt:
     name: ['openjdk-8-jdk-headless', 'openjdk-8-jre', 'openjdk-8-jre-headless', 'openjdk-8-jdk']

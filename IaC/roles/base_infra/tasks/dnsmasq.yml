@@ -16,39 +16,40 @@
   when: resolv_conf.stat.islnk is defined and resolv_conf.stat.islnk
   become: true
 
-- name: Check if 10.0.0.1 is reachable
-  wait_for:
-    host: 10.0.0.1
-    port: 53
-    timeout: 5
-  register: result_production
-  ignore_errors: true
+# TOFIX: Find a better way to do this
+# - name: Check if 10.0.0.1 is reachable
+#   wait_for:
+#     host: 10.0.0.1
+#     port: 53
+#     timeout: 5
+#   register: result_production
+#   ignore_errors: true
 
-- name: Set nameserver in resolv.conf to 10.0.0.1
-  copy:
-    dest: /etc/resolv.conf
-    content: |
-      nameserver 10.0.0.1
-    backup: yes
-  become: true
-  when: result_production is succeeded
+# - name: Set nameserver in resolv.conf to 10.0.0.2
+#   copy:
+#     dest: /etc/resolv.conf
+#     content: |
+#       nameserver 10.0.0.2
+#     backup: yes
+#   become: true
+#   when: result_production is succeeded
 
-- name: Check if 192.168.178.2 is reachable
-  wait_for:
-    host: 192.168.178.2
-    port: 53
-    timeout: 5
-  register: result_testbed
-  ignore_errors: true
+# - name: Check if 192.168.178.2 is reachable
+#   wait_for:
+#     host: 192.168.178.2
+#     port: 53
+#     timeout: 5
+#   register: result_testbed
+#   ignore_errors: true
 
-- name: Set nameserver in resolv.conf to 192.168.178.2
-  copy:
-    dest: /etc/resolv.conf
-    content: |
-      nameserver 192.168.178.2
-    backup: yes
-  become: true
-  when: result_testbed is succeeded and (result_production is failed or result_production is skipped)
+# - name: Set nameserver in resolv.conf to 192.168.178.2
+#   copy:
+#     dest: /etc/resolv.conf
+#     content: |
+#       nameserver 192.168.178.2
+#     backup: yes
+#   become: true
+#   when: result_testbed is succeeded and (result_production is failed or result_production is skipped)
 
 - name: Install dnsmasq
   apt:

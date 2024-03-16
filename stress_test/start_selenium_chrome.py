@@ -8,6 +8,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 
+# You need Chrome to be installed
 
 options = Options()
 options.add_argument("--headless")  # Run Chrome in headless mode
@@ -60,7 +61,7 @@ for _ in range(num_tabs):
   end_time = time.time()
   
   # Simulate users randomicity
-  delay = random.randint(30, 60)
+  delay = random.randint(5, 10)
   print(f"Waiting for {delay} seconds...")
   time.sleep(delay)
   

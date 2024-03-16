@@ -79,6 +79,14 @@
     owner: root
     group: root
 
+- name: Add content to /etc/jitsi/jicofo/sip-communicator.properties
+  become: true
+  ansible.builtin.blockinfile:
+    path: /etc/jitsi/jicofo/sip-communicator.properties
+    create: yes
+    block: |
+      org.jitsi.jicofo.HEALTH_CHECK_INTERVAL=-1
+
 - name: Copy jvb configuration file
   become: true
   copy:
