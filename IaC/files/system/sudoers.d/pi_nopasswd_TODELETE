@@ -1,1 +1,0 @@
-pi ALL=(ALL) NOPASSWD: /sbin/reboot, /sbin/shutdown, /sbin/poweroff, /sbin/halt

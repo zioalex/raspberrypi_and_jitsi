@@ -46,6 +46,7 @@
     - [GUI Tuning](#gui-tuning)
     - [VNC Setup](#vnc-setup)
       - [VNC config](#vnc-config)
+  - [Stress test](#stress-test)
 - [Challenge](#challenge)
 - [Best practices](#best-practices)
 - [Disable the screen dimming -  RO CONFIG](#disable-the-screen-dimming----ro-config)
@@ -62,6 +63,8 @@
 - [Todo](#todo)
   - [Done](#done)
 - [References](#references-3)
+
+> **Note:** This project has been done with the help on GenAI.
 
 # Intro
 
@@ -573,6 +576,28 @@ pacmd load-module module-loopback source=alsa_input.usb-Creative_Technology_Ltd_
 exec chromium https://translation.home.local/english &
 exec parecord --channels=2 -d recording.monitor /home/pi/output.wav &
 ```
+
+## Stress test
+To verify the Jitsi setup I wrote 2 small script to verify the system underload.
+Create a venv and install the requirements.txt
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+Run it it with
+  
+  ```bash 
+  python start_selenium_chrome.py
+  ```
+The Chrome version is using an Xvfb session to run the browser while the firefox version is opening real windows in the running XWindows session.
+
+The default test will test the jitsi server https://translation.sennsolutions.com/ukr and will try to join the meeting with 30 different users.
+
+Check the script to customize the test.
+
+
 # Challenge
 
 # Best practices

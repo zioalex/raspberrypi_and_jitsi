@@ -9,3 +9,4 @@ IaC/files/ssl_certs/*.key
 certs/*
 **/*_venv
 **/.venv
+**/__pycache__
