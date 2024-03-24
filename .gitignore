@@ -3,5 +3,10 @@
 **/2022-01-28-raspios-bullseye-armhf_rb-tft35_autoexpand.zip
 **/node_modules
 Legacy_WIP/jitsi_control/
-**/secrets*
+**/secrets.env
 **/.~lock.*
+IaC/files/ssl_certs/*.key
+certs/*
+**/*_venv
+**/.venv
+**/__pycache__

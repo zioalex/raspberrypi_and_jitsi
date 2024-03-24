@@ -1,0 +1,18 @@
+# Works with vncserver
+set -x
+#xset s noblank 
+#xset s off 
+#exec pulseaudio -v --start -D &
+# exec icewm --replace & # This doesn't work with the new RPI 4 
+
+logger "Run by $0 as part of the vnc startup"
+
+#exec pacmd load-module module-null-sink sink_name=recording sink_properties=device.description=recording && \
+#pacmd load-module module-combine-sink sink_name=combined sink_properties=device.description=combined slaves=recording,alsa_output.usb-Creative_Technology_Ltd_Sound_Blaster_Play__3_00252407-00.analog-stereo && \
+#pacmd load-module module-loopback source=alsa_input.usb-Creative_Technology_Ltd_Sound_Blaster_Play__3_00252407-00.analog-stereo sink=recording &
+
+#exec chromium https://translation.home.local/english &
+
+#exec parecord --channels=2 -d recording.monitor /home/pi/output.wav &
+#exec chromium --kiosk --app=http://translation.sennsolutions.com/english &
+#exec chromium --kiosk --app=http://localhost:5001 &

@@ -1,2 +1,5 @@
 ---
 jitsi_fqdn: translation.sennsolutions.com
+jitsi_host: translation
+upstream_dns: 10.0.0.1 # 192.168.178.2 to test it at home
+backend_ip: 10.0.0.2

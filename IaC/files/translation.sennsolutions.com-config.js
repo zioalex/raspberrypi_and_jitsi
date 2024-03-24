@@ -33,7 +33,7 @@ var config = {
         domain: 'translation.sennsolutions.com',
 
         // When using authentication, domain for guest users.
-        // anonymousdomain: 'guest.example.com',
+        anonymousdomain: 'guest.translation.sennsolutions.com',
 
         // Domain for authenticated users. Defaults to <domain>.
         // authdomain: 'translation.sennsolutions.com',
@@ -1086,15 +1086,15 @@ var config = {
     // For information about the properties of
     // deeplinking.[ios/android].dynamicLink check:
     // https://firebase.google.com/docs/dynamic-links/create-manually
-    // deeplinking: {
+    deeplinking: {
     //
-    //     // The desktop deeplinking config.
-    //     desktop: {
-    //         appName: 'Jitsi Meet'
-    //     },
-    //     // If true, any checks to handoff to another application will be prevented
-    //     // and instead the app will continue to display in the current browser.
-    //     disabled: false,
+        // The desktop deeplinking config.
+        desktop: {
+            appName: 'Jitsi Meet'
+        },
+        // If true, any checks to handoff to another application will be prevented
+        // and instead the app will continue to display in the current browser.
+        disabled: true,
 
     //     // whether to hide the logo on the deep linking pages.
     //     hideLogo: false,
@@ -1103,10 +1103,10 @@ var config = {
     //     showImage: false,
 
     //     // The ios deeplinking config.
-    //     ios: {
-    //         appName: 'Jitsi Meet',
-    //         // Specify mobile app scheme for opening the app from the mobile browser.
-    //         appScheme: 'org.jitsi.meet',
+        // ios: {
+        //     appName: 'Jitsi Meet',
+        //     // Specify mobile app scheme for opening the app from the mobile browser.
+        //     appScheme: 'org.jitsi.meet',
     //         // Custom URL for downloading ios mobile app.
     //         downloadLink: 'https://itunes.apple.com/us/app/jitsi-meet/id1165103905',
     //         dynamicLink: {
@@ -1136,7 +1136,7 @@ var config = {
     //             isi: '1165103905'
     //         }
     //     }
-    // },
+    },
 
     // A property to disable the right click context menu for localVideo
     // the menu has option to flip the locally seen video for local presentations
@@ -1537,9 +1537,9 @@ var config = {
     // },
 
     // Logging
-    // logging: {
-    //      // Default log level for the app and lib-jitsi-meet.
-    //      defaultLogLevel: 'trace',
+    logging: {
+         // Default log level for the app and lib-jitsi-meet.
+         defaultLogLevel: 'error',
     //      // Option to disable LogCollector (which stores the logs on CallStats).
     //      //disableLogCollector: true,
     //      // Individual loggers are customizable.
@@ -1548,7 +1548,7 @@ var config = {
     //      'modules/RTC/TraceablePeerConnection.js': 'info',
     //      'modules/statistics/CallStats.js': 'info',
     //      'modules/xmpp/strophe.util.js': 'log',
-    // },
+    },
 
     // Application logo url
     // defaultLogoUrl: 'images/watermark.svg',

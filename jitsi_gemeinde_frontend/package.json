@@ -16,7 +16,7 @@
     "web-vitals": "^2.1.4"
   },  
   "scripts": {
-    "start": "react-scripts start",
+    "start": "REACT_APP_LANG=eng react-scripts start",
     "build": "react-scripts build",
     "buildCompr": "react-scripts build && compress-cra",
     "test": "react-scripts test",

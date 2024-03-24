@@ -1,0 +1,64 @@
+pacmd list inputs
+# UKR channel
+    index: 0
+        driver: <protocol-native.c>
+        flags: START_CORKED 
+        state: RUNNING
+        source: 3 <alsa_input.usb-C-Media_Electronics_Inc._USB_Audio_Device-00.mono-fallback.2>
+        volume: front-left: 20239 /  31% / -30.62 dB,   front-right: 20239 /  31% / -30.62 dB
+                balance 0.00
+        muted: no
+        current latency: 0.00 ms
+        requested latency: 10.00 ms
+        sample spec: s16le 2ch 44100Hz
+        channel map: front-left,front-right
+                     Stereo
+        resample method: copy
+        owner module: 10
+        client: 0 <Chromium input>
+        properties:
+                application.icon_name = "chromium-browser"
+                media.name = "RecordStream"
+                application.name = "Chromium input"
+                native-protocol.peer = "UNIX socket client"
+                native-protocol.version = "35"
+                application.process.id = "1790"
+                application.process.user = "lang1"
+                application.process.host = "translation"
+                application.process.binary = "chromium"
+                application.language = "C.UTF-8"
+                window.x11.display = ":0"
+                application.process.machine_id = "ccd75fcb14144acebc6c3e3300e8a2d0"
+                module-stream-restore.id = "source-output-by-application-name:Chromium input"
+
+# ENG channel
+    index: 1
+        driver: <protocol-native.c>
+        flags: START_CORKED 
+        state: RUNNING
+        source: 1 <alsa_input.usb-C-Media_Electronics_Inc._USB_Audio_Device-00.mono-fallback>
+        volume: front-left: 65536 / 100% / 0.00 dB,   front-right: 65536 / 100% / 0.00 dB
+                balance 0.00
+        muted: no
+        current latency: 0.00 ms
+        requested latency: 10.00 ms
+        sample spec: s16le 2ch 44100Hz
+        channel map: front-left,front-right
+                     Stereo
+        resample method: copy
+        owner module: 21
+        client: 4 <Chromium input>
+        properties:
+                application.icon_name = "chromium-browser"
+                media.name = "RecordStream"
+                application.name = "Chromium input"
+                native-protocol.peer = "UNIX socket client"
+                native-protocol.version = "35"
+                application.process.id = "2690"
+                application.process.user = "lang2"
+                application.process.host = "translation"
+                application.process.binary = "chromium"
+                application.language = "C.UTF-8"
+                window.x11.display = ":20"
+                application.process.machine_id = "ccd75fcb14144acebc6c3e3300e8a2d0"
+                module-stream-restore.id = "source-output-by-application-name:Chromium input"

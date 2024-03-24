@@ -1,0 +1,10 @@
+- Add translation to /etc/hosts 
+- Template the App.jsx to interpolate the jitsi_fqdn
+- Add SecureDomain Documentation to sstart the meeting when the moderator is in
+  - https://jitsi.github.io/handbook/docs/devops-guide/secure-domain/
+  - https://github.com/jitsi/lib-jitsi-meet/blob/master/doc/tokens.md
+  - https://meetrix.io/articles/integration-of-jwt-with-jitsi/
+  - https://jwt.io/?ref=meetrix.io
+  - https://www.unixtimestamp.com/index.php?t=1345707641
+  - https://meetrix.io/blog/webrtc/jitsi/secure-domain-jwt-guest-access-jitsi-meet.html
+- 

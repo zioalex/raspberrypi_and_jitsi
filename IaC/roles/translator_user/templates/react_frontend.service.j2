@@ -1,0 +1,12 @@
+[Unit]
+Description={{ user_name }} React frontend service
+After=network.target
+[Service]
+User={{ user_name }}
+WorkingDirectory=/home/{{ user_name }}/jitsi_gemeinde_frontend
+ExecStart=/home/{{ user_name }}/.nvm/versions/node/v18.15.0/bin/npm run startBg
+Environment=PATH=/home/{{ user_name }}/.nvm/versions/node/v18.15.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+Restart=on-failure
+Environment=PORT={{ frontend_port }}
+[Install]
+WantedBy=multi-user.target

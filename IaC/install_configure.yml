@@ -114,8 +114,9 @@
 
     - name: Install required packages
       apt:
-        name: ['tightvncserver', 'xinit', 'xserver-xorg', 'gnome-tweaks', 'pavucontrol', 'xserver-xorg-legacy', 'ffmpeg', 'curl', 'alsa-utils', 'icewm', 'xdotool', 'xserver-xorg-video-dummy', 'ruby-hocon', 'figlet', 'xdg-utils', 'x11vnc', 'dbus-x11', 'acl']
+        name: ['tightvncserver', 'xinit', 'xserver-xorg', 'gnome-tweaks', 'pavucontrol', 'xserver-xorg-legacy', 'ffmpeg', 'curl', 'alsa-utils', 'icewm', 'xdotool', 'xserver-xorg-video-dummy', 'ruby-hocon', 'figlet', 'xdg-utils', 'x11vnc', 'dbus-x11', 'acl', 'xvfb', 'xsel']
         # acl is needed to set proper file permissions and make ansible happy
+        # xvfb needed to make x11vnc able to create a virtual display
         state: present
 
     - name: Select OpenJDK 8
@@ -219,14 +220,18 @@
         - Set Jicofo memory limit
 
     - name: Set Jitsi Videobridge memory limit
-      lineinfile:
+      become: true
+      replace:
         path: /etc/jitsi/videobridge/config
-        line: 'VIDEOBRIDGE_MAX_MEMORY="1024m"'
+        regexp: '^VIDEOBRIDGE_MAX_MEMORY=.*$'
+        line: 'VIDEOBRIDGE_MAX_MEMORY="2048"'
 
     - name: Set Jicofo memory limit
-      lineinfile:
+      become: true
+      replace:
         path: /etc/jitsi/jicofo/config
-        line: 'JICOFO_MAX_MEMORY="1024m"'
+        regexp: '^JICOFO_MAX_MEMORY=.*$'
+        line: 'JICOFO_MAX_MEMORY="2048m"'
 
     - name: Create {{ jitsi_hostname }}-config.js
       become: true
@@ -541,6 +546,21 @@
       service:
         name: jitsi-videobridge2
         state: restarted
+# make a module to create another user names pi1 with the same setup done for the user pi with VNX and X11
+# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/user_module.html
+# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/group_module.html
+
+    - name: Update Xwrapper.config
+      become: true
+      lineinfile:
+        path: /etc/X11/Xwrapper.config
+        regexp: "^#?allowed_users="
+        line: "allowed_users=anybody"
+        state: present
+      tags: x11
+
+
+#################### Migrated to role translator_user
 - name: Configure VNC and start X11
   tags: 
     - Installs_and_configures_VNC
@@ -600,14 +620,7 @@
         owner: pi
         group: pi
         mode: '0600'
-    - name: Update Xwrapper.config
-      become: true
-      lineinfile:
-        path: /etc/X11/Xwrapper.config
-        regexp: "^#?allowed_users="
-        line: "allowed_users=anybody"
-        state: present
-      tags: x11
+
     - name: Create pi_session service
       become: true
       copy:
@@ -712,6 +725,12 @@
         chdir: /home/pi
         executable: /bin/bash
       tags: service_frontend
+
+
+#################### End Migrated to role translator_user
+
+
+
     # - name: Create an .env file for the frontend
     #   become: true
     #   become_user: pi

@@ -1,12 +1,31 @@
 import { JitsiMeeting } from '@jitsi/react-sdk';
-import React, { useRef, useState } from 'react';
-import "./style.css";
+import React, { useRef, useState, useEffect } from 'react';
+import "./App.css";
+
+const jitsiDomain = process.env.REACT_APP_JITSI_FQDN;
+const backendIp = process.env.REACT_APP_BACKEND_IP;
 
   const App = () => {
     const apiRef = useRef();
     const [ logItems, updateLog ] = useState([]);
-    const [ showNew ] = useState(false);
-    // const [ knockingParticipants, updateKnockingParticipants ] = useState([]);
+    const [participants, setParticipants] = useState([]);
+    const [participantCount, setParticipantCount] = useState(0);
+    const [showDebugInfo, setShowDebugInfo] = useState(false);
+    const [localhost, setLocalhost] = useState(false);
+
+    useEffect(() => {
+        if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+            setLocalhost(true);
+            console.log("The app is running on localhost");
+        } else {
+            setLocalhost(false);
+            console.log("The app is not running on localhost");
+        }
+        // TOFIX: The debug mode doesn't work locally from the raspberrypi. I must connect remotely to 10.0.0.2:3000?debug=true.
+        const urlParams = new URLSearchParams(window.location.search);
+        const debug = urlParams.get('debug') === 'true';
+        console.log('Debug mode:', debug, urlParams);
+    }, []); // 👈️ empty dependencies array
 
     const printEventOutput = payload => {
         updateLog(items => [ ...items, JSON.stringify(payload) ]);
@@ -28,56 +47,20 @@ import "./style.css";
         updateLog(items => [ ...items, `you have ${payload.unreadCount} unread messages` ])
     };
 
-    // const handleKnockingParticipant = payload => {
-    //     updateLog(items => [ ...items, JSON.stringify(payload) ]);
-    //     updateKnockingParticipants(participants => [ ...participants, payload?.participant ])
-    // };
-
-    // const resolveKnockingParticipants = condition => {
-    //     knockingParticipants.forEach(participant => {
-    //         apiRef.current.executeCommand('answerKnockingParticipant', participant?.id, condition(participant));
-    //         updateKnockingParticipants(participants => participants.filter(item => item.id === participant.id));
-    //     });
-    // };
-    
-    //const toggleMuteAll = () => {
-    //setMuteAll(!muteAll);
-  //};
   
-
-
     const handleJitsiIFrameRef1 = iframeRef => {
-        // iframeRef.style.marginTop = '10px';
-        // iframeRef.style.border = '10px solid #3d3d3d';
-        // iframeRef.style.background = '#3d3d3d';
         iframeRef.style.height = '80px';
         iframeRef.style.width = '200px';
-        //iframeRef.style.marginBottom = '10px';
-    };
-
-    const handleJitsiIFrameRef2 = iframeRef => {
-        iframeRef.style.marginTop = '10px';
-        iframeRef.style.border = '10px dashed #df486f';
-        iframeRef.style.padding = '5px';
-        iframeRef.style.height = '400px';
-    };
-
-    const handleJaaSIFrameRef = iframeRef => {
-        iframeRef.style.border = '10px solid #3d3d3d';
-        iframeRef.style.background = '#3d3d3d';
-        iframeRef.style.height = '400px';
-        iframeRef.style.marginBottom = '20px';
     };
 
     const handleApiReady = apiObj => {
         apiRef.current = apiObj;
-        // apiRef.current.on('knockingParticipant', handleKnockingParticipant);
         apiRef.current.on('audioMuteStatusChanged', payload => handleAudioStatusChange(payload, 'audio'));
         apiRef.current.on('videoMuteStatusChanged', payload => handleAudioStatusChange(payload, 'video'));
         apiRef.current.on('raiseHandUpdated', printEventOutput);
         apiRef.current.on('titleViewChanged', printEventOutput);
         apiRef.current.on('chatUpdated', handleChatUpdates);
-        //apiRef.current.on('knockingParticipant', handleKnockingParticipant);
+        // apiRef.current.setLogLevel('error');
     };
 
     const handleReadyToClose = () => {
@@ -85,135 +68,157 @@ import "./style.css";
         alert('Ready to close...');
     };
 
-    //const generateRoomName = () => `JitsiMeetRoomNo${Math.random() * 100}-${Date.now()}`;
-    const generateRoomName = () => `ukr`;
+    
+    const generateRoomName = () => process.env.REACT_APP_LANG; // Take this on runtime `ukr`;
 
-    // Multiple instances demo
-    const renderNewInstance = () => {
-        if (!showNew) {
-            return null;
+
+    useEffect(() => {
+        /**
+         * Interval for updating participants information.
+         * @type {number}
+         */
+        const interval = setInterval(() => {
+            const info = apiRef.current.getParticipantsInfo();
+            setParticipants(info);
+        }, 1000);
+    
+        return () => clearInterval(interval);
+    }, []);
+
+    const [isMutingAll] = useState(false);
+    const [isMuted, setIsMuted] = useState(false);
+
+    // Set the variable isMuted if the audio is muted
+    useEffect(() => {
+        if (localhost) { // Check if running on localhost
+            const interval = setInterval(() => {
+                apiRef.current.isAudioMuted().then(muted => {
+                    if (new URLSearchParams(window.location.search).get('debug') === 'true') {
+                        console.log('isAudioMuted', muted);
+                    }
+                    setIsMuted(muted);
+                });  
+            }, 500);
+            return () => clearInterval(interval);
         }
+    });
 
+    const unmuteModerator = () => {
+        if (apiRef.current && localhost) {
+            // Check if the participant is muted.
+            apiRef.current.isAudioMuted().then((muted) => {
+                // If the participant is muted, unmute them.
+                if (muted) {
+                    apiRef.current.executeCommand('toggleAudio');
+                    setIsMuted(false);
+                    if (new URLSearchParams(window.location.search).get('debug') === 'true') {
+                        console.log('Unmuting', muted);
+                    }  
+                }
+            });
+        }
+      };
+          
+    // Call the unmuteModerator method when the component mounts.
+    useEffect(() => {
+        unmuteModerator();
+    });
+
+    // const newParticipant = () => {
+    //     if (apiRef.current) {
+    //         apiRef.current.addEventListener('participantJoined', (event) => {
+    //             if (localhost) {
+    //                     const participantId = event.id;
+    //                     //apiRef.current.executeCommand('setAudioMute', participantId, true);
+    //                     apiRef.current.executeCommand('muteEveryone');
+    //                     if (new URLSearchParams(window.location.search).get('debug') === 'true') {
+    //                         console.log(`A new participant with ID ${participantId} joined the meeting - Muting`);
+    //                     }
+    //                 }
+    //             });
+    //     }
+    // };
+
+    useEffect(() => {
+        if (apiRef.current && localhost) {
+            const intervalId = setInterval(() => {
+                apiRef.current.executeCommand('muteEveryone');
+                console.log('Mute everyone every 5 secs');
+            }, 5000); // 5000 milliseconds = 5 seconds
+            return () => clearInterval(intervalId);
+        }
+    }, [apiRef.current]); // Node says that apiRef.current is not needed here, but it is. Otherwise, the function is not called.
+
+    // useEffect(() => {
+    //     const interval = setInterval(() => {
+    //         newParticipant();
+    //     }, 1000);
+    //     return () => clearInterval(interval);
+    // });
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const info = apiRef.current.getParticipantsInfo();
+            const filteredInfo = info.filter(participant => participant.displayName !== 'translator');
+            const participantCount = filteredInfo.length;
+            setParticipantCount(participantCount);
+        }, 1000);
+
+        return () => {
+            clearInterval(interval);
+        };
+    }, []);
+
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const debug = urlParams.get('debug');
+        if (debug === 'true') {
+            console.log('DEBUG MODE ENABLED');
+            setShowDebugInfo(true);
+        }
+    }, [setShowDebugInfo]);
+
+    const handleButton1Click = () => {
+        window.location.reload(true)
+    };
+
+    const handleButton2Click = () => {
+        if (apiRef.current) {
+            console.log('Mute everyOne');
+            apiRef.current.executeCommand('muteEveryone');
+            const participants = apiRef.current.getParticipantsInfo();
+            participants.forEach(participant => {
+                if (participant.displayName === 'translator') {
+                    console.log(`The participant ${participant.participantId}  is muted. Sending to server`);
+                }
+            });
+        }
+    };
+            
+    const renderButtons = () => {
         return (
-            <JitsiMeeting
-                roomName = { generateRoomName() }
-                getIFrameRef = { handleJitsiIFrameRef2 }
-                />
+            <div className="button-container">
+                <button onClick={handleButton1Click} className="button rejoin-button">Re-Join</button>
+                <button onClick={handleButton2Click} className="button mute-all-button">
+                    {isMutingAll ? 'Muting All...' : 'Mute All'}
+                </button>
+            </div>
         );
     };
 
-    const [isMutingAll, setIsMutingAll] = useState(false);
-
-    const renderButtons = () => (
-        <div class="row">
-           <div class="column">
-            
-                {/* <button
-                    type = 'text'
-                    title = 'Click to execute toggle raise hand command'
-                    style = {{
-                        border: 0,
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        background: '#f8ae1a',
-                        color: '#040404',
-                        padding: '12px 46px',
-                        margin: '2px 2px'
-                    }}
-                    onClick = { () => apiRef.current.executeCommand('toggleRaiseHand') }>
-                    Raise hand
-                </button>
-                <button
-                    type = 'text'
-                    title = 'Click to approve/reject knocking participant'
-                    style = {{
-                        border: 0,
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        background: '#0056E0',
-                        color: 'white',
-                        padding: '12px 46px',
-                        margin: '2px 2px'
-                    }}
-                    onClick = { () => resolveKnockingParticipants(({ name }) => !name.includes('test')) }>
-                    Resolve lobby
-                </button>
-                <button
-                    type = 'text'
-                    title = 'Click to execute subject command'
-                    style = {{
-                        border: 0,
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        background: '#df486f',
-                        color: 'white',
-                        padding: '12px 46px',
-                        margin: '2px 2px'
-                    }}
-                    onClick = { () => apiRef.current.executeCommand('subject', 'New Subject')}>
-                    Change subject
-                </button> */}
-                <button
-                    type = 'text'
-                    title = 'Click to rejoin the JitsiMeeting'
-                    style = {{
-                        border: 0,
-                        borderRadius: '6px',
-                        fontSize: '16px',
-                        background: '#00AA00',
-                        color: 'white',
-                        padding: '20px 60px',
-                        margin: '2px 2px'
-                    }}
-                    onClick = { () => window.location.reload(true) }>
-                    Re-join
-                </button>  
-                <button
-                    type = 'text'
-                    title = 'Mute all'
-                    style = {{
-                        border: 0,
-                        borderRadius: '6px',
-                        fontSize: '16px',
-                        background: '#AAAAAA',
-                        color: 'white',
-                        padding: '20px 60px',
-                        margin: '2px 2px'
-                    }}
-                    onClick = { () => apiRef.current.executeCommand('muteEveryone')}>
-                    {isMutingAll ? 'Muting All...' : 'Mute All'}
-                </button>
-                {/* <button
-                    type = 'text'
-                    title = 'Click to create a new JitsiMeeting instance'
-                    style = {{
-                        border: 0,
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                        background: '#3D3D3D',
-                        color: 'white',
-                        padding: '12px 46px',
-                        margin: '2px 2px'
-                    }}
-                    onClick = { () => toggleShowNew(!showNew) }>
-                    Toggle new instance
-                </button> */}
-            </div>
-        </div>
-    );
-
-    const renderLog = () => logItems.map(
-        (item, index) => (
-            <div
-                style = {{
-                    fontFamily: 'monospace',
-                    padding: '5px'
-                }}
-                key = { index }>
-                {item}
-            </div>
-        )
-    );
+    // TOFIX: To test the impact of this
+    // const renderLog = () => logItems.map(
+    //     (item, index) => (
+    //         <div
+    //             style = {{
+    //                 fontFamily: 'monospace',
+    //                 padding: '5px'
+    //             }}
+    //             key = { index }>
+    //             {item}
+    //         </div>
+    //     )
+    // );
 
     const renderSpinner = () => (
         <div style = {{
@@ -224,25 +229,21 @@ import "./style.css";
         </div>
     );
 
-    // const renderParticipants = apiObj => (
-        // apiRef.current = apiObj;
-        // apiRef.current.on('getParticipants', printEventOutput);
-    // );
-
-    const renderParticipants = () => {
-        <div style = {{
-            fontFamily: 'sans-serif',
-            textAlign: 'center'
-        }}> 
-            TEST....How to get the number of participants 
-        </div>
-    };
+    // TOFIX: To test the impact of this
+    // const renderParticipants = () => {
+    //     <div style = {{
+    //         fontFamily: 'sans-serif',
+    //         textAlign: 'center'
+    //     }}> 
+    //         TEST....How to get the number of participants 
+    //     </div>
+    // };
 
     const [isShuttingDown, setIsShuttingDown] = useState(false);
     const handleShutdown = () => {
         setIsShuttingDown(true);
     
-        fetch('/shutdown', {
+        fetch(`http://${backendIp}:5000/shutdown`, {
           method: 'GET'
         })
           .then(response => {
@@ -261,7 +262,7 @@ import "./style.css";
       };
 
       const handleReboot = () => {
-        fetch('/reboot', {
+        fetch(`http://${backendIp}:5000/reboot`, {
           method: 'GET'
         })
           .then(response => {
@@ -279,63 +280,60 @@ import "./style.css";
     return (
         <>
             <body>
-            
-            {/* <h1 style = {{
-                fontFamily: 'sans-serif',
-                textAlign: 'center'
-            }}>
-            </h1> */}
+            <div className="app-container">
+            <h1 className="app-title">Jitsi Channel {process.env.REACT_APP_LANG}</h1>
+            <div className="status-container" style={{ display: 'flex', alignItems: 'center' }}>
+                <div className="button-container">
+                    <button className={`button ${localhost === true ? (isMuted ? 'red' : 'green') : 'green'}`}>
+                        {localhost === true? (isMuted ? 'Muted' : 'Online') : ''}
+                    </button>
+                </div>
+                <div className="participant-count">
+                    {participantCount}
+                </div>
+            </div>
             {renderButtons()}
-            <div class="column">
-            <button 
-                onClick={handleReboot}
-                style = {{
-                    border: 0,
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    background: '#bb486f',
-                    color: 'white',
-                    padding: '10px 60px',
-                    margin: '20px 2px'
-                }}>
-                    Restart
-                </button>
-            <button 
-                onClick={handleShutdown}
-                disabled={isShuttingDown}
-                style = {{
-                    border: 0,
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    background: '#df486f',
-                    color: 'white',
-                    padding: '10px 60px',
-                    margin: '10px 2px'
-                }}>
+            <div className="button-container">
+                <button onClick={handleReboot} className="button reboot-button">Restart</button>
+                <button onClick={handleShutdown} disabled={isShuttingDown} className={`button shutdown-button ${isShuttingDown ? 'disabled' : ''}`}>
                     {isShuttingDown ? 'Shutting down...' : 'Power Off'}
                 </button>
             </div>
-
-            {/* <div style = {{
-                display: 'flex',
-                justifyContent: 'right'
-            }}> */}
-            <div class="column">
             <JitsiMeeting
-		        domain = { 'translation.sennsolutions.com' }
-                roomName = { generateRoomName() }
-                spinner = { renderSpinner }
-                configOverwrite = {{
-                    subject: 'lalalala',
-                    hideConferenceSubject: false
+                domain={jitsiDomain}
+                roomName={generateRoomName()}
+                spinner={renderSpinner}
+                jwt={process.env.REACT_APP_JWT}
+                configOverwrite={{
+                    subject: '{process.env.REACT_APP_LANG}',
+                    hideConferenceSubject: false,
+                    // websocket: 'wss://translation.sennsolutions.com/xmpp-websocket',
                 }}
-                onApiReady = { externalApi => handleApiReady(externalApi) }
-                onReadyToClose = { handleReadyToClose }
-                getIFrameRef = { handleJitsiIFrameRef1 } />
-            </div>
-            {/* {renderNewInstance()} */}
-            {renderLog()}
-            {renderParticipants()}
+                onApiReady={handleApiReady}
+                onReadyToClose={handleReadyToClose}
+                getIFrameRef={handleJitsiIFrameRef1} 
+            />
+
+            {showDebugInfo && 
+                <div className="environment-variables">
+                    <h2>Environment Variables</h2>
+                    <p>REACT_APP_JITSI_FQDN: {process.env.REACT_APP_JITSI_FQDN}</p>
+                    <p>REACT_APP_BACKEND_IP: {process.env.REACT_APP_BACKEND_IP}</p>
+                    <h2>Participants:</h2>
+                    <ul>
+                        { 
+                        participants.map((participant, index) => (
+                            <li key={index}>
+                                Name: {participant.displayName}, ID: {participant.participantId}
+                            </li>
+                        ))}
+                    </ul>
+                    {/* {renderLog()}
+                    {renderParticipants()} */}
+                </div>
+            }
+        </div>
+            
             </body>
         </>
     );

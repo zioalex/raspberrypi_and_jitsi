@@ -1,0 +1,13 @@
+[Unit]
+Description=X for {{ user_name }}
+After={% if main_user is defined and main_user == true %}vncserver.service{% elif main_user is not defined or main_user == false %}frontend_lang1_session.service{% endif %}
+
+[Service]
+Type=simple
+User={{ user_name }}
+Group={{ user_name }}
+Restart=always
+ExecStart=/usr/bin/startx -- {% if main_user is not defined or main_user == false %}/usr/bin/Xvfb{% endif %} :{{ display_number }}
+
+[Install]
+WantedBy=multi-user.target

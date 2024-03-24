@@ -1,0 +1,114 @@
+# ansible-playbook -i hosts backend_role.yml
+---
+- name: Check if required variables are defined
+  assert:
+    that: "{{ item }} is defined"
+    fail_msg: "The required variable '{{ item }}' is not defined"
+  loop:
+    - user_name
+    - upstream_dns
+
+- name: Ensure user {{ user_name }} exists
+  ansible.builtin.user:
+    name: "{{ user_name }}"
+    system: yes
+    groups: sudo
+    append: yes
+# - name: "Copy {{ user_name }} sudoers file"
+#   become: true
+#   copy:
+#     src: files/system/sudoers.d/backend_user_nopasswd
+#     dest: /etc/sudoers.d/{{ user_name }}_nopasswd
+#     mode: '0440'
+#     owner: root
+#     group: root
+#   tags: sudoers
+- name: Copy sudoers file for {{ user_name }}
+  template:
+    src: backend_user_nopasswd.j2
+    dest: /etc/sudoers.d/backend_{{ user_name }}_nopasswd
+    mode: '0440'
+    owner: root
+    group: root
+    validate: 'visudo -cf %s'
+  tags: sudoers
+- name: Copy the npm backend service
+  become: true
+  copy:
+    src: files/app/backend/
+    dest: "/home/{{ user_name }}/jitsi_gemeinde_backend"
+    mode: '0644'
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+  tags: service_backend
+
+- name: Install nvm
+  become: true
+  become_user: "{{ user_name }}"
+  shell: |
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
+  args:
+    chdir: "/home/{{ user_name }}"
+    executable: /bin/bash
+    creates: "/home/{{ user_name }}/.nvm"
+  tags: service_backend
+
+- name: Install node 18.15.0
+  become: true
+  become_user: "{{ user_name }}"
+  shell: |
+    source /home/{{ user_name }}/.nvm/nvm.sh
+    nvm install 18.15.0
+  args:
+    chdir: "/home/{{ user_name }}"
+    executable: /bin/bash
+    creates: "/home/{{ user_name }}/.nvm/versions/node/v18.15.0"
+  tags: service_backend
+- name: "{{ user_name }} backend npm install"
+  become: true
+  become_user: "{{ user_name }}"
+  shell: |
+    source /home/{{ user_name }}/.nvm/nvm.sh
+    cd /home/{{ user_name }}/jitsi_gemeinde_backend
+    npm install
+  args:
+    chdir: "/home/{{ user_name }}"
+    executable: /bin/bash
+  tags: service_backend
+- name: "{{ user_name }} backend npm start"
+  become: true
+  become_user: "{{ user_name }}"
+  shell: |
+    source /home/{{ user_name }}/.nvm/nvm.sh
+    cd /home/{{ user_name }}/jitsi_gemeinde_backend
+    npm run startbg
+  args:
+    chdir: "/home/{{ user_name }}"
+    executable: /bin/bash
+  tags: service_backend
+- name: Create Backend systemd service file
+  become: true
+  copy:
+    dest: /etc/systemd/system/{{ user_name }}-backend.service
+    content: |
+      [Unit]
+      Description={{ user_name }} backend service
+      After=network.target
+
+      [Service]
+      Type=forking
+      User={{ user_name }}
+      WorkingDirectory=/home/{{ user_name }}/jitsi_gemeinde_backend
+      ExecStart=/home/{{ user_name }}/.nvm/versions/node/v18.15.0/bin/npm run startbg
+      Environment=PATH=/home/{{ user_name }}/.nvm/versions/node/v18.15.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      Restart=on-failure
+
+      [Install]
+      WantedBy=multi-user.target
+  notify: restart {{ user_name }}-backend
+- name: Start and enable service
+  become: true
+  systemd:
+    name: "{{ user_name }}-backend"
+    state: started
+    enabled: yes

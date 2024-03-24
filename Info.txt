@@ -606,8 +606,148 @@ https://gist.github.com/kimus/9315140
 See for sure /etc/default/ufw /etc/ufw/sysctl.conf  and /etc/ufw/before.rules 
 
 # TODO
-- LCD goes blank
-- Become a Moderator Button
+- LCD goes blank - Done 
+- Become a Moderator Button - Done with Secure Domain
 - wpad improvements?
 - Shutdown confirmation
-- Unmute myself
+- Unmute myself - Done
+
+# BROKEN:
+Feb 04 19:04:22 translation pulseaudio[1407]: ALSA woke us up to write new data to the device, but there was actually nothing to write.                      
+Feb 04 19:04:22 translation pulseaudio[1407]: Most likely this is a bug in the ALSA driver 'snd_bcm2835'. Please report this issue to the ALSA developers.   
+Feb 04 19:04:22 translation pulseaudio[1407]: We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() returned 0 or another value < min_avail.                                                                                                                                                          
+
+~~Feb 04 19:05:33 translation turnserver[1044]: 133: : ERROR: check_stun_auth: Cannot find credentials of user <1707159926>~~          
+~~Feb 04 19:05:33 translation turnserver[1044]: 133: : ERROR: check_stun_auth: Cannot find credentials of user <1707159926>~~          
+~~Feb 04 19:05:33 translation turnserver[1044]: 133: : ERROR: check_stun_auth: Cannot find credentials of user <1707159926>~~          
+~~Feb 04 19:05:35 translation turnserver[1044]: 135: : ERROR: check_stun_auth: Cannot find credentials of user <1707159867>~~          
+
+Disable alsa services
+
+Disable cups systemctl disable snap.cups.cupsd.service
+systemctl disable snap.cups.cups-browsed.service
+systemctl disable snapd.socket 
+systemctl disable snapd.service
+systemctl disable snap-bare-5.mount
+systemctl disable snap-chromium-2626.mount 
+systemctl disable snap-chromium-2667.mount 
+systemctl disable snap-core20-2019.mount 
+systemctl disable snap-core20-2107.mount 
+systemctl disable snap-core22-1035.mount 
+systemctl disable snap-core22-867.mount 
+systemctl disable snap-cups-1025.mount 
+systemctl disable snap-cups-981.mount 
+systemctl disable snap-gnome\\x2d42\\x2d2204-127.mount 
+systemctl disable snap-gnome\\x2d42\\x2d2204-143.mount 
+systemctl disable snap-gtk\\x2dcommon\\x2dthemes-1535.mount 
+systemctl disable snap-lxd-24326.mount 
+systemctl disable snap-lxd-26884.mount 
+systemctl disable snap-snapd-20298.mount 
+systemctl disable snap-snapd-20674.mount 
+systemctl disable lxd-agent.service
+systemctl disable snap.lxd.activate.service
+systemctl disable snapd.apparmor.service
+
+# Auto recreate Prosody certs
+# how to create the certificate files on the fly
+# prosodyctl cert generate  {{ jitsi_fqdn }} 
+# prosodyctl cert generate auth.{{ jitsi_fqdn }}
+# prosodyctl reload
+- name: Copy certificate files to /var/lib/prosody/
+  become: true
+  copy:
+    src: files/prosody/certs/
+    dest: /var/lib/prosody/
+    mode: '0640'
+    owner: prosody
+    group: prosody
+
+# Jitdi broken another time
+
+more /etc/jitsi/videobridge/config
+
+# adds java system props that are passed to jvb (default are for home and logging config file)
+JAVA_SYS_PROPS="-Dconfig.file=/etc/jitsi/videobridge/jvb.conf -Dnet.java.sip.communicator.SC_HOME_DIR_LOCATION=/etc/jitsi -Dnet.java.sip.communicator.SC_HOM
+E_DIR_NAME=videobridge -Dnet.java.sip.communicator.SC_LOG_DIR_LOCATION=/var/log/jitsi -Djava.util.logging.config.file=/etc/jitsi/videobridge/logging.propert
+ies"
+VIDEOBRIDGE_MAX_MEMORY="1024m"
+--- ADDED THESE LINES ---
+JVB_DISABLE_STUN=true
+JICOFO_ENABLE_BRIDGE_HEALTH_CHECKS=0
+
+more /etc/jitsi/jicofo/config
+# adds java system props that are passed to jicofo (default are for home and logging config file)
+JAVA_SYS_PROPS="-Dconfig.file=/etc/jitsi/jicofo/jicofo.conf -Dnet.java.sip.communicator.SC_HOME_DIR_LOCATION=/etc/jitsi -Dnet.java.sip.communicator.SC_HOME_
+DIR_NAME=jicofo -Dnet.java.sip.communicator.SC_LOG_DIR_LOCATION=/var/log/jitsi -Djava.util.logging.config.file=/etc/jitsi/jicofo/logging.properties"
+JICOFO_MAX_MEMORY="1024m"
+--- ADDED THESE LINES ---
+JVB_DISABLE_STUN=true               
+JICOFO_ENABLE_BRIDGE_HEALTH_CHECKS=0
+
+--- Commented some lines in /etc/turnserver.conf because reporter errors in the log
+root@translation:/etc/jitsi/videobridge# more /etc/turnserver.conf
+# jitsi-meet coturn config. Do not modify this line
+use-auth-secret
+keep-address-family
+static-auth-secret=EPWDmRaK2G2Nh7OY
+realm=translation.sennsolutions.com
+cert=/etc/coturn/certs/translation.sennsolutions.com.crt
+pkey=/etc/coturn/certs/translation.sennsolutions.com.key
+no-multicast-peers
+no-cli
+#no-loopback-peers
+no-tcp-relay
+no-tcp
+listening-port=3478
+tls-listening-port=5349
+no-tlsv1
+no-tlsv1_1
+# https://ssl-config.mozilla.org/#server=haproxy&version=2.1&config=intermediate&openssl=1.1.0g&guideline=5.4
+cipher-list=ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY130
+5:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384
+# without it there are errors when running on Ubuntu 20.04
+#dh2066
+# jitsi-meet coturn relay disable config. Do not modify this line
+denied-peer-ip=0.0.0.0-0.255.255.255
+denied-peer-ip=10.0.0.0-10.255.255.255
+denied-peer-ip=100.64.0.0-100.127.255.255
+denied-peer-ip=127.0.0.0-127.255.255.255
+denied-peer-ip=169.254.0.0-169.254.255.255
+denied-peer-ip=127.0.0.0-127.255.255.255
+denied-peer-ip=172.16.0.0-172.31.255.255
+denied-peer-ip=192.0.0.0-192.0.0.255
+denied-peer-ip=192.0.2.0-192.0.2.255
+denied-peer-ip=192.88.99.0-192.88.99.255
+denied-peer-ip=192.168.0.0-192.168.255.255
+denied-peer-ip=198.18.0.0-198.19.255.255
+denied-peer-ip=198.51.100.0-198.51.100.255
+denied-peer-ip=203.0.113.0-203.0.113.255
+denied-peer-ip=240.0.0.0-255.255.255.255
+denied-peer-ip=::1
+denied-peer-ip=64:ff9b::-64:ff9b::ffff:ffff
+denied-peer-ip=::ffff:0.0.0.0-::ffff:255.255.255.255
+denied-peer-ip=100::-100::ffff:ffff:ffff:ffff
+denied-peer-ip=2001::-2001:1ff:ffff:ffff:ffff:ffff:ffff:ffff
+denied-peer-ip=2002::-2002:ffff:ffff:ffff:ffff:ffff:ffff:ffff
+denied-peer-ip=fc00::-fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
+denied-peer-ip=fe80::-febf:ffff:ffff:ffff:ffff:ffff:ffff:ffff
+syslog
+
++++ after: /home/asurace/github/raspberrypi_and_jitsi/IaC/files/prosody/translation.sennsolutions.com.cfg.lua
+@@ -12,7 +12,7 @@
+ 
+ cross_domain_bosh = false;
+ consider_bosh_secure = true;
+-https_ports = { }; -- Remove this line to prevent listening on port 5284
++-- https_ports = { }; -- Remove this line to prevent listening on port 5284
+ 
+ -- by default prosody 0.12 sends cors headers, if you want to disable it uncomment the following (the config is available on 0.12.1)
+ --http_cors_override = {
+
+changed: [10.0.0.2]
+
+
+
+FAQ:
+If only 1 user can login and the other get disconnected, check the prosody SSL certificates. The you could be expired.
+ 

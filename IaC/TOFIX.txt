@@ -1,0 +1,13 @@
+- ansible code for nameserver - DONE
+- lang1: restart/shutdown dowsn't from RP but works from web app  - DONE
+- MuteAll button doesn't work for lang2 via 10.0.0.2:3001
+- Auto-Mute
+- Jitsi must me the Moderator. - DONE
+- slow boot - network delay
+- customization in App.jsx for translation.sennsolutions.com - DONE via .env
+- Document JWT token
+- translation to /etc/hosts
+- disable wpa_supplicant
+- mute all in web app mute also the Moderator
+
+search why DNS on Iphone isn't used 

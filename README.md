@@ -12,21 +12,25 @@
     - [Cooling solution](#cooling-solution)
     - [Attach the FAN](#attach-the-fan)
   - [Installation](#installation)
+    - [Preparation](#preparation)
     - [Enable every user to start](#enable-every-user-to-start)
     - [On the new version try with the snap version](#on-the-new-version-try-with-the-snap-version)
     - [Install chromium](#install-chromium)
     - [Install Jitsi](#install-jitsi)
     - [Audio Setup - To be confirmed](#audio-setup---to-be-confirmed)
-  - [Chromium installation - To be confirmed](#chromium-installation---to-be-confirmed)
   - [Jitsi setup](#jitsi-setup)
+  - [Jicofo Setup](#jicofo-setup)
+    - [References](#references)
     - [Jitsi customization](#jitsi-customization)
-    - [Recompile jniwrapper-native-1.0-SNAPSHOT](#recompile-jniwrapper-native-10-snapshot)
+    - [Recompile jniwrapper-native-1.0-SNAPSHOT - obsolete](#recompile-jniwrapper-native-10-snapshot---obsolete)
   - [SSL Certificate](#ssl-certificate)
     - [SSL Certificate creation](#ssl-certificate-creation)
     - [Nginx SSL Certificate configuration](#nginx-ssl-certificate-configuration)
     - [Jitsi SSL Certificate configuration](#jitsi-ssl-certificate-configuration)
   - [Enable the NGINX config](#enable-the-nginx-config)
   - [Prosody setup](#prosody-setup)
+  - [Pulseaudio setup](#pulseaudio-setup)
+    - [References](#references-1)
   - [Audio Recording](#audio-recording)
     - [Asound conf - Is this used in the last pulse version?](#asound-conf---is-this-used-in-the-last-pulse-version)
     - [Create the output sink called recording](#create-the-output-sink-called-recording)
@@ -42,11 +46,12 @@
     - [GUI Tuning](#gui-tuning)
     - [VNC Setup](#vnc-setup)
       - [VNC config](#vnc-config)
+  - [Stress test](#stress-test)
 - [Challenge](#challenge)
 - [Best practices](#best-practices)
 - [Disable the screen dimming -  RO CONFIG](#disable-the-screen-dimming----ro-config)
 - [RO FS](#ro-fs)
-  - [References](#references)
+  - [References](#references-2)
 - [Monitor the temperature](#monitor-the-temperature)
 - [Disable not useful services](#disable-not-useful-services)
   - [Auto update](#auto-update)
@@ -56,7 +61,10 @@
 - [Removes old revisions of snaps](#removes-old-revisions-of-snaps)
 - [Backup](#backup)
 - [Todo](#todo)
-- [References](#references-1)
+  - [Done](#done)
+- [References](#references-3)
+
+> **Note:** This project has been done with the help on GenAI.
 
 # Intro
 
@@ -73,11 +81,13 @@ The software choosen is Jitsi were we have very short delays.
 Running Jitsi on a Raspberry PI can looks trivial, and installing the software it is but the goal is to make the translator independent by any other device and have the meeting in control.
 The translator is not a technical person and therefore the interaction with the Raspberry PI must be as easy as possible like as well the user part.
 
-Jitsi has per se some hard requirements to work properly
+Jitsi has per se some hard requirements to work properly. The first one is the SSL certificate. The system is not working without a valid SSL certificate. The second one is the audio. The audio must be properly configured to work properly.
+
+This system can be used for very high confidential meetings because the traffic is not leaving the LAN.
 
 ## Goals
 
-- close to zero delay
+- close to zero latency
 - the system can works also in a not internet connected network
 - the traffic is every case not leaving the LAN
 - the translator is autonomous in starting the meeting
@@ -151,8 +161,51 @@ Pin1 is in the opposite from the USB ports on the internal side of the board. Fo
 
 see https://linuxhint.com/gpio-pinout-raspberry-pi/
 ## Installation
+The full installation and configuration process is now done via Ansible. The Ansible playbook is in the folder IaC.
+
+The playbook is divided in 3 different roles:
+
+| Role Name                     | Included Tasks                      | Goal |
+|-------------------------------|-------------------------------------|-|
+| base_infra                    | required_variables.yml              | Check that all required variable are set |
+|                               | netplan_config.yml                  | Configure the network |
+|                               | default_gw.yml                      | Setup the needed Iptables rules|
+|                               | install_and_configure_software.yml  | Install and configure all the required base software|
+|                               | dnsmasq.yml                         | Setup dnsmasq and DNS servers|
+|                               | configure_jitsi.yml                 | Configure Jitsi|
+|                               | enable_jitsi_services.yml           | Enable all the Jitsi server|
+| gemeinde_backend              |                                     | Start the npm backend server|
+| translator_user               |                                     | Configure the translator user where the React app will run|
+
+Now the installation is done via Ansible. The Ansible playbook is in the folder IaC.
+### Preparation
+
+1. Copy the public key of the user that will run the playbook in the Raspberry PI enduser home folder `~/.ssh/authorized_keys`
+2. Copy the file secrets.env.sample in secrets.env and fill it with the correct values
+3. Source the secrets.env file
+   - `source secrets.env`
+
+```bash
+. secrets.env
+ansible-playbook -i hosts full_setup.yml
+```
+The default configuration is setting by default 2 different translation users for 2 different languages.
+
+You can customize the configuration by changing the file `IaC/full_setup.yml`.
+
+To test the single roles specific yml files have been created:
+
+- base_infra.yml
+- backend_tole.yml
+- frontend_tole.yml
+ 
+<details>
+<summary>To see all the configurations done check the details here of look into the IaC folder</summary>
+
+```bash
     sudo apt install openjdk-8-jdk-headless openjdk-8-jre openjdk-8-jre-headless openjdk-8-jdk tightvncserver xinit xserver-xorg gnome-tweaks pavucontrol  xserver-xorg-legacy
     sudo apt-get install default-jre-headless ffmpeg curl alsa-utils icewm xdotool xserver-xorg-video-dummy ruby-hocon build-essention libtool maven git
+```
 
 ### Enable every user to start
 ```bash
@@ -253,9 +306,6 @@ To work properly Jitsi need the aloop module. It can be found in the package `li
     rm /lib/systemd/system/alsa-utils.service ; systemctl daemon-reload
     apt install unzip ffmpeg curl alsa-utils icewm xdotool  xserver-xorg-video-dummy # Why this?
 
-## Chromium installation - To be confirmed
-Trying with snap
-
 ## Jitsi setup
 Limit the memory usage
 Edit the file /etc/jitsi/videobridge/config and add the following line:
@@ -270,9 +320,26 @@ Edit the file  /etc/jitsi/jicofo/config , add the following line:
 
 And restart Jicofo.
 
+## Jicofo Setup
+During the develelpoment I experimented a very werid behaviour. Jitsi was working properly at home but not in its destination place.
+The error message that I got was "No bridge available". I do not yet understand why this happened but I found a workaround. I've added the following line in the file `/etc/jitsi/jicofo/sip-communicator.properties`
+
+    org.jitsi.jicofo.HEALTH_CHECK_INTERVAL=-1
+
+This actually disable the health check and the system is working properly. I need to investigate more on this.
+
+### References
+
+https://community.jitsi.org/t/can-not-invite-participant-no-bridge-available-since-last-update-debian-10/63046
+
+
 ### Jitsi customization
 Edit the file /etc/jitsi/meet/translation.sennsolutions.com-config.js
-### Recompile jniwrapper-native-1.0-SNAPSHOT
+
+### Recompile jniwrapper-native-1.0-SNAPSHOT - obsolete
+Not anymore needed with the latest version of Jitsi. The jniwrapper-native-1.0-SNAPSHOT.jar is already compiled for ARM64.
+<details>
+<summary>Click to expand!</summary>
 To work properly under ARM64 the jniwrapper-native-1.0-SNAPSHOT.jar must be recompiled. See [gist][2] for more details.
 
     git clone https://github.com/sctplab/usrsctp.git
@@ -298,6 +365,9 @@ sudo usermod -aG adm,audio,video,plugdev jibri
 
 
 [2]: https://gist.github.com/krithin/e50a6001c8435e46cb85f5c6c78e2d66
+</details>
+
+</details>
 
 ## SSL Certificate
 ### SSL Certificate creation
@@ -361,6 +431,27 @@ systenctl restart nginx
 
     ln -s /etc/opt/chrome/policies/ /etc/chromium/ # config for chrome and Chromium are stored in different placeS
 
+## Pulseaudio setup
+
+The current setup is using PulseAudio to manage the audio. The unique Pulseaudio server is running within the main (lang1) user. The other users are using the Pulseaudio server of the main user. This is done to avoid the problem of the audio device that can be used only by one user at time.
+
+The Pulseaudio server is started by the user lang1 and it is configured to start automatically at boot. The lang2 point to the network Pulseaudio server via the config `default-server = unix:/tmp/pulse-socket` in the file `/home/lang2/.config/pulse/client.conf`
+
+The default device is set in the .xinitrc file with the command `pacmd set-default-source pacmd set-default-source alsa_input.usb-C-Media_Electronics_Inc._USB_Audio_Device-00.mono-fallback.2`
+
+While chromium on the lang2, is started with:
+`PULSE_SOURCE="alsa_input.usb-C-Media_Electronics_Inc._USB_Audio_Device-00.mono-fallback" /usr/bin/chromium  --app=http://localhost:3001`
+
+### References
+https://askubuntu.com/questions/14077/how-can-i-change-the-default-audio-device-from-command-line
+
+https://wiki.archlinux.org/title/PulseAudio/Examples#Set_default_input_sources
+
+https://askubuntu.com/questions/71863/how-to-change-pulseaudio-sink-with-pacmd-set-default-sink-during-playback/72076#72076
+
+https://shallowsky.com/linux/pulseaudio-command-line.html
+
+https://copyprogramming.com/howto/change-pulseaudio-input-output-from-shell
 ## Audio Recording
 To record the audio Jibri should be used but I couldn't manage to make it working.
 So I am recording the audio with Python intercepting the Audio device.
@@ -485,6 +576,28 @@ pacmd load-module module-loopback source=alsa_input.usb-Creative_Technology_Ltd_
 exec chromium https://translation.home.local/english &
 exec parecord --channels=2 -d recording.monitor /home/pi/output.wav &
 ```
+
+## Stress test
+To verify the Jitsi setup I wrote 2 small script to verify the system underload.
+Create a venv and install the requirements.txt
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+Run it it with
+  
+  ```bash 
+  python start_selenium_chrome.py
+  ```
+The Chrome version is using an Xvfb session to run the browser while the firefox version is opening real windows in the running XWindows session.
+
+The default test will test the jitsi server https://translation.sennsolutions.com/ukr and will try to join the meeting with 30 different users.
+
+Check the script to customize the test.
+
+
 # Challenge
 
 # Best practices
@@ -674,13 +787,18 @@ rsync -axP root@translation.sennsolutions.com:/ root_fs/
 
 # Todo
 
-- Automated Raspberry Pi installation and configuration
-- Display how many users are connected
-- Show something when the botton Mute All is pressed
+- SSL certificate automated update procedure using getssl
+- Show a message when the shutdown button is pressed asking for confirmation
 - Show when the translator voice is really transmitted
-- SSL certificate automated update procedure
+- Make it completely independent from the translation.sennsolutions.com domain
+- Automated Raspberry Pi installation and configuration
 - Use the Raspberry Pi as a Wifi Access Point
 - RO FS to avoid SD card corruption
+
+## Done
+
+- Display how many users are connected - Done
+- Show something when the botton Mute All is pressed - Done 
 
 # References
 https://doganbros.medium.com/jitsi-iframe-in-use-a-shody-guide-to-embeding-jitsi-into-your-website-b13bf8d1c4f6

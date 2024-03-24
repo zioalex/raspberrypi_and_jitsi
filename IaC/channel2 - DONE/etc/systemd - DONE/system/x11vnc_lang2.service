@@ -1,0 +1,16 @@
+[Unit]
+Description=x11vnc server lang2
+After=syslog.target network.target jitsi-videobridge2.service pi_session.service
+Requires=jitsi-videobridge2.service
+StartLimitIntervalSec=0
+
+[Service]
+User=lang2
+PIDFile=/home/lang2/.vnc/%H:0.pid
+ExecStart=/usr/bin/x11vnc -forever -nevershared -create
+ExecStop=pkill x11vnc
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

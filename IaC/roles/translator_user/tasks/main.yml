@@ -1,0 +1,245 @@
+# ansible-playbook -i hosts test_role.yml --start-at-task="{{ user_name }} Install nvm"
+- name: Check if required variables are defined
+  assert:
+    that: "{{ item }} is defined"
+    fail_msg: "The required variable '{{ item }}' is not defined"
+  loop:
+    - user_name
+    - display_number
+    - jitsi_channel
+    - jitsi_fqdn
+    - backend_ip
+    - frontend_port
+  tags: quick_build
+- name: Check if required environment variables are defined
+  assert:
+    that: "lookup('env', item) != ''"
+    fail_msg: "The required environment variable '{{ item }}' is not defined"
+  loop:
+    - jitsi_jwt
+    - VNC_PASSWORD
+    - PI_PASSWORD
+  tags: quick_build
+- name: Create {{ user_name }} user
+  user:
+    name: "{{ user_name }}"
+    shell: /bin/bash
+    createhome: yes
+    home: /home/{{ user_name }}
+    password: "{{ lookup('env', 'PI_PASSWORD') | password_hash('sha512') }}" # "{{ lookup('env', 'PI_PASSWORD') }}"
+    groups: tty, adm, dialout, audio, video, plugdev, netdev, pulse-access, users, ssl-cert
+    append: yes
+- name: "Copy {{ user_name }} .xsessionrc file"
+  become: true
+  copy:
+    src: files/pi_user/xsessionrc
+    dest: /home/{{ user_name }}/.xsessionrc
+    mode: '0644'
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+- name: "Copy {{ user_name }} .xinit file"
+  become: true
+  template:
+    src: xinitrc.j2
+    dest: /home/{{ user_name }}/.xinitrc
+    mode: '0644'
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+  tags: x11, xinitrc
+# - name: Copy VNC service file
+#   become: true
+#   copy:
+#     src: files/system/vncserver.service
+#     dest: /etc/systemd/system/vncserver.service
+#     mode: '0644'
+#     owner: root
+#     group: root
+# - name: "{{ user_name }} x11vnc service file"
+#   become: true
+#   copy:
+#     src: files/system/x11vnc.service
+#     dest: /etc/systemd/system/x11vnc_"{{ user_name }}".service
+#     mode: '0644'
+#     owner: root
+#     group: root
+
+- name: Copy x11vnc service file for {{ user_name }}
+  template:
+    src: x11vnc.service.j2
+    dest: /etc/systemd/system/x11vnc_{{ user_name }}.service
+    mode: '0644'
+    owner: root
+    group: root
+- name: "{{ user_name}} .vnc directory"
+  become: true
+  file:
+    path: /home/{{ user_name }}/.vnc
+    state: directory
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+    mode: '0755'
+- name: "{{ user_name }} Create VNC password"
+  become: true
+  shell: echo "{{ lookup('env', 'VNC_PASSWORD') }}" | vncpasswd  -f  > /home/{{ user_name }}/.vnc/passwd
+- name: Set VNC password owner
+  become: true
+  file:
+    path: /home/{{ user_name }}/.vnc/passwd
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+    mode: '0600'
+- name: "Create {{ user_name }}_session service"
+  become: true
+  template:
+    src: frontend_session.service.j2
+    dest: /etc/systemd/system/frontend_{{ user_name }}_session.service
+    mode: '0644'
+    owner: root
+    group: root
+  tags: x11
+- name: "{{ user_name }} pulseaudio unix socket config"
+  become: true
+  copy:
+    dest: /home/{{ user_name }}/.config/pulse/client.conf
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+    mode: '0644'
+    content: |
+      default-server = unix:/tmp/pulse-socket
+      load-module module-stream-restore restore_device=false
+  when: main_user is not defined or main_user == false
+# - name: "{{ user_name }} Copy the npm backend service"
+#   become: true
+#   copy:
+#     src: files/app/backend/
+#     dest: /home/{{ user_name }}/jitsi_gemeinde_backend
+#     mode: '0644'
+#     owner: "{{ user_name }}"
+#     group: "{{ user_name }}"
+#   tags: service_backend
+- name: "{{ user_name }} Copy the React frontend"
+  become: true
+  copy:
+    src: files/app/frontend/
+    dest: /home/{{ user_name }}/jitsi_gemeinde_frontend
+    mode: '0644'
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+  tags: service_frontend, quick_build
+- name: Create React Frontend .env file for {{ user_name }}
+  template:
+    src: react_app_frontend_env.j2
+    dest: /home/{{ user_name }}/jitsi_gemeinde_frontend/.env
+    mode: '0644'
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+  tags: service_frontend, quick_build
+- name: Copy package.json file for {{ user_name }}
+  template:
+    src: package.json.j2
+    dest: /home/{{ user_name }}/jitsi_gemeinde_frontend/package.json
+  tags: service_frontend, quick_build
+  # build and npm and start the service
+# install nvm via a curl command for the user pi
+- name: "{{ user_name }} Install nvm"
+  # run as pi
+  become: true
+  become_user: "{{ user_name }}"
+  shell: |
+    id > /home/{{ user_name }}/id.txt
+    echo "Installing nvm"
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
+  args:
+    chdir: /home/{{ user_name }}
+    executable: /bin/bash
+    creates: /home/{{ user_name }}/.nvm # If .nvm exists, the command will not run
+    # warn: false
+  tags: service_frontend
+# install node 18.15.0 via nvm
+- name: "{{ user_name }} Install node 18.15.0"
+  become: true
+  become_user: "{{ user_name }}"
+  shell: |
+    source /home/{{ user_name }}/.nvm/nvm.sh
+    nvm install 18.15.0
+  args:
+    chdir: /home/{{ user_name }}
+    executable: /bin/bash
+    creates: /home/{{ user_name }}/.nvm/versions/node/v18.15.0
+  tags: service_frontend
+# - name: "{{ user_name }} backend npm build"
+#   become: true
+#   become_user: "{{ user_name }}"
+#   shell: |
+#     source /home/{{ user_name }}/.nvm/nvm.sh
+#     cd /home/{{ user_name }}/jitsi_gemeinde_backend
+#     npm run build
+#   args:
+#     chdir: /home/{{ user_name }}
+#     executable: /bin/bash
+#   tags: service_backend
+# - name: Create a file link to the build directory
+#   become: true
+#   become_user: pi
+#   file:
+#     path: /home/pi/jitsi_gemeinde_frontend/build
+#     state: link
+#     src: /home/pi/jitsi_gemeinde_backend/build
+- name: "{{ user_name }} frontend npm install"
+  become: true
+  become_user: "{{ user_name }}"
+  shell: |
+    source /home/{{ user_name }}/.nvm/nvm.sh
+    cd /home/{{ user_name }}/jitsi_gemeinde_frontend
+    npm install
+  args:
+    chdir: "/home/{{ user_name }}"
+    executable: /bin/bash
+  tags: service_frontend
+- name: "{{ user_name }} frontend npm build"
+  become: true
+  become_user: "{{ user_name }}"
+  shell: |
+    source /home/{{ user_name }}/.nvm/nvm.sh
+    cd /home/{{ user_name }}/jitsi_gemeinde_frontend
+    npm run build
+  args:
+    chdir: /home/{{ user_name }}
+    executable: /bin/bash
+  tags: service_frontend, quick_build
+- name: "Enable frontend_{{ user_name }}_session service"
+  become: true
+  systemd:
+    name: "frontend_{{ user_name }}_session"
+    state: started
+    enabled: yes
+  tags: x11
+  # when: main_user is defined and main_user == true
+- name: "{{ user_name }} Enable x11vnc service"
+  become: true
+  systemd:
+    name: "x11vnc_{{ user_name }}"
+    state: started
+    enabled: yes
+  tags: x11
+- name: Print user_name
+  debug:
+    msg: "This is my username {{ user_name }}"
+# Always fails at the first run when anything with the variable {{ user_name }} changes.
+# Second run is always successful.
+- name: "Create systemd ReactApp service file for frontend for user {{ user_name }}"
+  become: true
+  template: 
+    src: react_frontend.service.j2
+    dest: /etc/systemd/system/{{ user_name }}-react-frontend.service
+    mode: '0644'
+    owner: root
+    group: root
+  notify: restart {{ user_name }}-react-frontend
+  debugger: on_failed
+- name: "Start and enable frontend service for user {{ user_name }}"
+  become: true
+  systemd:
+    name: "{{ user_name }}-react-frontend"
+    state: started
+    enabled: yes

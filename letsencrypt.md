@@ -91,6 +91,34 @@ IMPORTANT NOTES:
 The key is now in ~/letsencrypt/archive/translation.sennsolutions.com
 
 
+# automatic process with getssl
+  293  apt install ./getssl_2.47-1_all.deb 
+  295  curl --silent https://raw.githubusercontent.com/srvrco/getssl/latest/getssl > getssl ; chmod 700 getssl
+  296  ./getssl 
+  297  mv getssl /usr/local/bin/
+  298  getssl -c translation.sennsolutions.com
+  299  vi .getssl/getssl.cfg 
+  300  cd .getssl/
+  304  vi getssl.cfg 
+  306  getssl translation.sennsolutions.com
+  307  vi getssl.cfg
+  308  vi .getssl/translation.sennsolutions.com/getssl.cfg 
+  309  getssl translation.sennsolutions.com
+  312  vi .getssl/translation.sennsolutions.com/getssl.cfg 
+  313  vi .getssl/getssl.cfg 
+  314  vi .getssl/translation.sennsolutions.com/getssl.cfg 
+  316  getssl translation.sennsolutions.com
+  317  cd /root/.getssl/translation.sennsolutions.com/
+  324  vi getssl.cfg 
+  325  getssl translation.sennsolutions.com
+  326  getssl translation.sennsolutions.com --help
+  327  getssl translation.sennsolutions.com -f
+  340  history |grep getssl
+  343  chmod +x getssl 
+  345  history |grep getssl
+
+Configure the adhoc user getssl to do not risk to expose anything else <-- Can be improved creating a chroot setup >
+
 # GETSSL automated client
 curl --silent https://raw.githubusercontent.com/srvrco/getssl/latest/getssl > getssl ; chmod 700 getssl; mv getssl /usr/local/bin/
 

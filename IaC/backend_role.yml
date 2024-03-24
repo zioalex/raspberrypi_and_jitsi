@@ -1,0 +1,13 @@
+# ansible-playbook -i hosts backend_role.yml
+   - hosts: all
+     become: true
+     roles:
+     # pass the variable user_name to the role
+      - { role: gemeinde_backend, user_name: 'pi' }
+     handlers:
+      - name: restart {{ user_name }}-backend
+        become: true
+        systemd:
+          name: "{{ user_name }}-backend"
+          state: restarted
+          daemon_reload: yes

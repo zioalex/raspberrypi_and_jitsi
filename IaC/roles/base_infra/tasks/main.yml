@@ -1,0 +1,10 @@
+- include_tasks: required_variables.yml
+- include_tasks: netplan_config.yml
+- include_tasks: default_gw.yml
+- include_tasks: install_and_configure_software.yml
+- include_tasks: dnsmasq.yml
+- include_tasks: configure_jitsi.yml
+- include_tasks: enable_jitsi_services.yml  
+
+
+
