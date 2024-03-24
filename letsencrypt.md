@@ -119,3 +119,17 @@ The key is now in ~/letsencrypt/archive/translation.sennsolutions.com
 
 Configure the adhoc user getssl to do not risk to expose anything else <-- Can be improved creating a chroot setup >
 
+# GETSSL automated client
+curl --silent https://raw.githubusercontent.com/srvrco/getssl/latest/getssl > getssl ; chmod 700 getssl; mv getssl /usr/local/bin/
+
+Generate the initial config
+getssl -c translation.sennsolutions.com
+
+Edit the generated config file
+vi .getssl/getssl.cfg
+
+Edit the specific domain config file
+vi .getssl/translation.sennsolutions.com/getssl.cfg
+
+Generate the certificate
+getssl translation.sennsolutions.com
