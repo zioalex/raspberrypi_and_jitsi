@@ -133,3 +133,76 @@ vi .getssl/translation.sennsolutions.com/getssl.cfg
 
 Generate the certificate
 getssl translation.sennsolutions.com
+
+# Runtime test with the getssl user
+
+On bigone
+```bash
+/sbin/ifconfig enp4s0:1 10.0.0.11 netmask 255.255.255.0 # and a VIP to communicate with RPi
+sudo su - getssl
+```
+
+Run with the CA server
+
+```bash
+sed -i 's/^CA="https:\/\/acme-v02.api.letsencrypt.org"/#CA="https:\/\/acme-v02.api.letsencrypt.org"/' .getssl/translation.sennsolutions.com/getssl.cfg
+sed -i 's/^#CA="https:\/\/acme-staging-v02.api.letsencrypt.org"/CA="https:\/\/acme-staging-v02.api.letsencrypt.org"/' .getssl/translation.sennsolutions.com/getssl.cfg
+```
+
+
+If running @home comment the translation.sennsolutions.com FQDN from /etc/hosts
+
+```bash
+# Let use the proper IP
+sudo sed -i 's/^#5.175.14.40 translation.sennsolutions.com/5.175.14.40 translation.sennsolutions.com/' /etc/hosts
+
+getssl translation.sennsolutions.com
+
+```
+
+Test that certificate has been issued with the Staging server and check the expiration date
+
+```bash
+openssl x509 -in .getssl/translation.sennsolutions.com/translation.sennsolutions.com.crt -text |grep -A 3 "Issuer:"
+Issuer: C = US, O = (STAGING) Let's Encrypt, CN = (STAGING) Wannabe Watercress R11
+Validity
+            Not Before: May 18 07:58:30 2024 GMT
+            Not After : Aug 16 07:58:29 2024 GMT
+```
+
+
+Use the prod CA server
+
+```bash
+sed -i 's/^CA="https:\/\/acme-staging-v02.api.letsencrypt.org"/#CA="https:\/\/acme-staging-v02.api.letsencrypt.org"/' .getssl/translation.sennsolutions.com/getssl.cfg
+sed -i 's/^#CA="https:\/\/acme-v02.api.letsencrypt.org"/CA="https:\/\/acme-v02.api.letsencrypt.org"/' .getssl/translation.sennsolutions.com/getssl.cfg
+```
+
+
+```bash
+getssl translation.sennsolutions.com -f # Force the renewal is required because it checks the validation date of the latest cert, that was created just few lines above with the staging server
+```
+
+```bash
+
+# Removing the explicit record in /etc/hosts we are using the local test ip as provided my PiHole
+sudo sed -i 's/^5.175.14.40 translation.sennsolutions.com/#5.175.14.40 translation.sennsolutions.com/' /etc/hosts
+
+```
+
+
+Test that certificate has been issued with the Prod server and check the expiration date
+
+```bash
+openssl x509 -in .getssl/translation.sennsolutions.com/translation.sennsolutions.com.crt -text |grep -A 3 "Issuer:"
+Issuer: C = US, O = Let's Encrypt, CN = R3
+Validity
+            Not Before: May 18 07:58:30 2024 GMT
+            Not After : Aug 16 07:58:29 2024 GMT
+```
+
+Add the read permission for the key file to be read by the user asurace
+  
+```bash
+chmod 644 .getssl/translation.sennsolutions.com/translation.sennsolutions.com.key
+```
