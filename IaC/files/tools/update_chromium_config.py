@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import json
 import sys
 import shutil
@@ -9,7 +10,8 @@ import datetime
 # The desired value for media_stream_mic
 # setting = 1 means mic enabled
 # setting = 2 meand mic disabled
-desired_value = {'http://localhost:3000,*': {'last_modified': '13360533281672096', 'last_visit': '13360032000000000', 'setting': 1}, 'http://localhost:3001,*': {'last_modified': '13360533281672096', 'last_visit': '13360032000000000', 'setting': 1}, 'http://localhost:3002,*': {'last_modified': '13349645031455168', 'setting': 1}, 'https://translation.sennsolutions.com:443,*': {'last_modified': '13359373425412612', 'last_visit': '13360032000000000', 'setting': 1}}
+desired_value = desired_value = {'http://localhost:3000,*': {'setting': 1}, 'http://localhost:3001,*': {'setting': 1}, 'http://localhost:3002,*': {'setting': 1}, 'https://translation.sennsolutions.com:443,*': {'setting': 1}}
+
 
 # The path to the file is the first command-line argument
 file_path = sys.argv[1]
