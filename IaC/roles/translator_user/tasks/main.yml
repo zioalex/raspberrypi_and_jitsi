@@ -243,3 +243,23 @@
     name: "{{ user_name }}-react-frontend"
     state: started
     enabled: yes
+- name: "Ensure the bin directory exists"
+  become: true
+  file:
+    path: "{{ user_name }}/bin"
+    state: directory
+    mode: '0755'
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+- name: "Copy the update_chromium_config.py script"
+  become: true
+  copy:
+    src: files/tools/update_chromium_config.py
+    dest: "{{ user_name }}/bin/update_chromium_config.py"
+    mode: '0755'
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+- name: "Update Chromium config for user {{ user_name }}"
+  command: python3 /root/bin/update_chromium_config.py /home/{{ user_name }}/.config/chromium/Default/Preferences
+  tags: quick_build
+  when: ansible_facts['file_exists']['/home/{{ user_name }}/.config/chromium/Default/Preferences']
