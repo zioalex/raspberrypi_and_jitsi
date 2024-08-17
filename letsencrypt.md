@@ -154,7 +154,7 @@ If running @home comment the translation.sennsolutions.com FQDN from /etc/hosts
 
 ```bash
 # Let use the proper IP
-sudo sed -i 's/^#5.175.14.40 translation.sennsolutions.com/5.175.14.40 translation.sennsolutions.com/' /etc/hosts
+sudo sed -i 's/^#5.175.14.40 translation.sennsolutions.com # DO-NOT-CHANGE-AUTOMATICALLY-MANAGED/5.175.14.40 translation.sennsolutions.com # DO-NOT-CHANGE-AUTOMATICALLY-MANAGED/' /etc/hosts
 
 getssl translation.sennsolutions.com
 
@@ -186,7 +186,7 @@ getssl translation.sennsolutions.com -f # Force the renewal is required because 
 ```bash
 
 # Removing the explicit record in /etc/hosts we are using the local test ip as provided my PiHole
-sudo sed -i 's/^5.175.14.40 translation.sennsolutions.com/#5.175.14.40 translation.sennsolutions.com/' /etc/hosts
+sudo sed -i 's/^5.175.14.40 translation.sennsolutions.com # DO-NOT-CHANGE-AUTOMATICALLY-MANAGED/#5.175.14.40 translation.sennsolutions.com # DO-NOT-CHANGE-AUTOMATICALLY-MANAGED/' /etc/hosts
 
 ```
 

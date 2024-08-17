@@ -13,6 +13,7 @@
     - [Attach the FAN](#attach-the-fan)
   - [Installation](#installation)
     - [Preparation](#preparation)
+      - [Other ways to run ansible](#other-ways-to-run-ansible)
     - [Enable every user to start](#enable-every-user-to-start)
     - [On the new version try with the snap version](#on-the-new-version-try-with-the-snap-version)
     - [Install chromium](#install-chromium)
@@ -198,7 +199,21 @@ To test the single roles specific yml files have been created:
 - base_infra.yml
 - backend_tole.yml
 - frontend_tole.yml
- 
+
+#### Other ways to run ansible
+Test it without doing any changes on the system
+```bash
+ansible-playbook -i hosts frontend_role.yml --check --diff
+```
+
+ansible-playbook -i hosts install_configure.yml  --extra-vars "create_netplan_config=false" --user=ubuntu
+
+ansible-playbook -i hosts install_configure.yml  --extra-vars "create_netplan_config=false" --start-at-task="Set Jicofo memory limit" --step --user=ubuntu
+
+ansible-playbook -i hosts install_configure.yml  --extra-vars "create_netplan_config=false" --start-at-task "Copy the npm backend service"
+
+ansible-playbook -i hosts install_configure.yml  --extra-vars "create_netplan_config=false" --tags "Recompiles Jitsi VideoBridge2 JAR file"
+
 <details>
 <summary>To see all the configurations done check the details here of look into the IaC folder</summary>
 

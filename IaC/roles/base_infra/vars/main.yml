@@ -1,2 +1,7 @@
 ---
 # vars file for base_infra
+getssl_user: ubuntu
+getssl_group: ubuntu
+getssl_ftp_username: "{{ lookup('env', 'getssl_ftp_username') }}"
+getssl_ftp_password: "{{ lookup('env', 'getssl_ftp_password') }}"
+getssl_ftp_host: "{{ lookup('env', 'getssl_ftp_host') }}"

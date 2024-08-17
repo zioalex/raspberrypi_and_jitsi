@@ -1,0 +1,69 @@
+---
+- name: Ensure getssl is installed
+  become: true
+  block:
+    - name: Get the latest getssl release
+      get_url:
+        url: https://raw.githubusercontent.com/srvrco/getssl/latest/getssl
+        dest: /usr/local/bin/getssl
+        mode: '0755'
+
+    - name: Ensure getssl is executable
+      file:
+        path: /usr/local/bin/getssl
+        mode: '0755'
+        state: file
+
+- name: Add the getssl configuration
+  become: true
+  block:
+    - name: Create the getssl directory
+      file:
+        path: /home/{{ getssl_user }}/.getssl/{{ jitsi_fqdn }}
+        mode: '0755'
+        state: directory
+        owner: "{{ getssl_user }}"
+        group: "{{ getssl_group }}"
+    - name: Add getssl.cfg template
+      template:
+        src: getssl.cfg.j2
+        dest: /home/{{ getssl_user }}/.getssl/{{ jitsi_fqdn }}/getssl.cfg
+        mode: '0644'
+        owner: "{{ getssl_user }}"
+        group: "{{ getssl_group }}"
+- name: Setup getssl to run at every boot
+  become: true
+  block:
+    - name: Create /root/bin directory
+      file:
+        path: /root/bin
+        mode: '0755'
+        state: directory
+    - name: Add autoupdate_ssl_cert.sh
+      copy:
+        src: files/tools/autoupdate_ssl_cert.sh
+        dest: /root/bin/autoupdate_ssl_cert.sh
+        mode: '0755'
+    - name: Create systemd service unit file for autoupdate_ssl_cert
+      copy:
+        dest: /etc/systemd/system/autoupdate_ssl_cert.service
+        content: |
+          [Unit]
+          Description=Auto Update SSL Certificate
+          After=network.target frontend_lang1_session.service frontend_lang2_session.service
+          Requires=frontend_lang1_session.service frontend_lang2_session.service
+
+          [Service]
+          ExecStartPre=/bin/sleep 10
+          ExecStart=/root/bin/autoupdate_ssl_cert.sh
+          Type=oneshot
+
+          [Install]
+          WantedBy=multi-user.target
+        mode: '0644'
+    - name: Enable autoupdate_ssl_cert service
+      systemd:
+        name: autoupdate_ssl_cert
+        enabled: yes
+        state: started
+# dig @8.8.8.8 translation.sennsolutions.com +short
