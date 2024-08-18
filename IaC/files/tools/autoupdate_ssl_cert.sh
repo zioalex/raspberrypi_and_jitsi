@@ -6,7 +6,7 @@ KEY_FILE="/etc/ssl/translation.sennsolutions.com.key"
 DAYS_BEFORE_EXPIRY=30
 
 
-# https://letsencrypt.org/docs/faq/ Suggest renewing every 60 days
+# https://letsencrypt.org/docs/faq/ Suggest renewing 30 days before expiry
 
 # Get the expiration date of the certificate
 EXPIRY_DATE=$(openssl x509 -enddate -noout -in "$CERT_FILE" | cut -d= -f2)

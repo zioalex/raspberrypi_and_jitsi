@@ -57,6 +57,7 @@
           ExecStartPre=/bin/sleep 10
           ExecStart=/root/bin/autoupdate_ssl_cert.sh
           Type=oneshot
+          RemainAfterExit=yes
 
           [Install]
           WantedBy=multi-user.target
