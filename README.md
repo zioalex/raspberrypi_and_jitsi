@@ -1,18 +1,5 @@
 - [Intro](#intro)
   - [Consideration](#consideration)
-  - [Goals](#goals)
-  - [Architecture](#architecture)
-- [Requirements](#requirements)
-- [Setup](#setup)
-  - [How to prepare the SD card with Ubuntu 22.04](#how-to-prepare-the-sd-card-with-ubuntu-2204)
-  - [Boot Ubuntu](#boot-ubuntu)
-  - [Important notes](#important-notes)
-  - [Hardware setup](#hardware-setup)
-    - [LCD Display 4.3inch\_DSI\_LCD](#lcd-display-43inch_dsi_lcd)
-    - [Cooling solution](#cooling-solution)
-    - [Attach the FAN](#attach-the-fan)
-  - [Installation](#installation)
-    - [Preparation](#preparation)
       - [Other ways to run ansible](#other-ways-to-run-ansible)
     - [Enable every user to start](#enable-every-user-to-start)
     - [On the new version try with the snap version](#on-the-new-version-try-with-the-snap-version)
@@ -86,6 +73,11 @@ Jitsi has per se some hard requirements to work properly. The first one is the S
 
 This system can be used for very high confidential meetings because the traffic is not leaving the LAN.
 
+Keep in mind that by default the RaspberryPi doesn't have a RTC and therefore the time is not correct. This can be a problem for the SSL certificate or any other time related service.
+
+Remember to add a dependency to `systemd-timesyncd.service` to any time sensitive service.
+
+```bash
 ## Goals
 
 - close to zero latency

@@ -50,12 +50,12 @@
         content: |
           [Unit]
           Description=Auto Update SSL Certificate
-          After=network.target frontend_lang1_session.service frontend_lang2_session.service
-          Requires=frontend_lang1_session.service frontend_lang2_session.service
+          After=network.target frontend_lang1_session.service frontend_lang2_session.service systemd-timesyncd.service
+          Requires=frontend_lang1_session.service frontend_lang2_session.service systemd-timesyncd.service
 
           [Service]
           ExecStartPre=/bin/sleep 10
-          ExecStart=/root/bin/autoupdate_ssl_cert.sh
+          ExecStart=/root/bin/autoupdate_ssl_cert.sh &
           Type=oneshot
           RemainAfterExit=yes
 
