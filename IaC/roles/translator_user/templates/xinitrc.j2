@@ -59,6 +59,8 @@ export PULSE_SOURCE="alsa_input.usb-C-Media_Electronics_Inc._USB_Audio_Device-00
 export PULSE_SOURCE="alsa_input.usb-C-Media_Electronics_Inc._USB_Audio_Device-00.mono-fallback"
 {% endif %}
 
-/usr/bin/chromium  --kiosk --disable-gpu --no-sandbox --disable-dev-shm-usage --app=http://localhost:{{ frontend_port }} 
+/usr/bin/chromium  --kiosk --disable-gpu --no-sandbox --disable-dev-shm-usage --app=http://localhost:{{ frontend_port }}
+# -/usr/bin/chromium  --disable-dev-shm-usage https://translation.sennsolutions.com/eng?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJqaXRzaSIsImNvbnRleHQiOnsidXNlciI6eyJuYW1lIjoidHJhbnNsYXRvciIsIm1vZGVyYXRvciI6InRydWUifX0sImV4cCI6MzI1MDQ3ODc1MTEsImlzcyI6InRyYW5zbGF0aW9uIiwic3ViIjoidHJhbnNsYXRpb24uc2VubnNvbHV0aW9ucy5jb20iLCJuYmYiOjE1OTYxOTc2NTIsInJvb20iOiIqIn0.FlcPIqv8cNgKkKeZuJ7lId6wIVoNmb3xrRzlYwkJZBo
+
 # TOFIX https://peter.sh/experiments/chromium-command-line-switches/ Anything Useful here?
 exec xterm

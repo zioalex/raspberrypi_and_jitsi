@@ -5,6 +5,11 @@
   loop:
     - jitsi_fqdn
     - upstream_dns
+    - getssl_ftp_username
+    - getssl_ftp_password
+    - getssl_ftp_host
+    - getssl_user
+    - getssl_group
 
 - name: Check if required environment variables are defined
   assert:

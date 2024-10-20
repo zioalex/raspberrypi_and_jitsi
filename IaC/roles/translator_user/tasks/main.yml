@@ -243,3 +243,30 @@
     name: "{{ user_name }}-react-frontend"
     state: started
     enabled: yes
+- name: "Ensure the bin directory exists"
+  become: true
+  file:
+    path: "/home/{{ user_name }}/bin"
+    state: directory
+    mode: '0755'
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+- name: "Copy the update_chromium_config.py script"
+  become: true
+  copy:
+    src: files/tools/update_chromium_config.py
+    dest: "/home/{{ user_name }}/bin/update_chromium_config.py"
+    mode: '0755'
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+- name: "Check if Chromium Preferences file exists"
+  stat:
+    path: "/home/{{ user_name }}/.config/chromium/Default/Preferences"
+  register: chromium_preferences
+- name: "Debug Chromium Preferences file existence"
+  debug:
+    msg: "Chromium Preferences file exists: {{ chromium_preferences.stat.exists }}"
+- name: "Update Chromium config for user {{ user_name }}"
+  command: python3 /home/"{{ user_name }}"/bin/update_chromium_config.py /home/"{{ user_name }}"/.config/chromium/Default/Preferences
+  tags: quick_build
+  when: chromium_preferences.stat.exists

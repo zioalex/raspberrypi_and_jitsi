@@ -1,18 +1,6 @@
 - [Intro](#intro)
   - [Consideration](#consideration)
-  - [Goals](#goals)
-  - [Architecture](#architecture)
-- [Requirements](#requirements)
-- [Setup](#setup)
-  - [How to prepare the SD card with Ubuntu 22.04](#how-to-prepare-the-sd-card-with-ubuntu-2204)
-  - [Boot Ubuntu](#boot-ubuntu)
-  - [Important notes](#important-notes)
-  - [Hardware setup](#hardware-setup)
-    - [LCD Display 4.3inch\_DSI\_LCD](#lcd-display-43inch_dsi_lcd)
-    - [Cooling solution](#cooling-solution)
-    - [Attach the FAN](#attach-the-fan)
-  - [Installation](#installation)
-    - [Preparation](#preparation)
+      - [Other ways to run ansible](#other-ways-to-run-ansible)
     - [Enable every user to start](#enable-every-user-to-start)
     - [On the new version try with the snap version](#on-the-new-version-try-with-the-snap-version)
     - [Install chromium](#install-chromium)
@@ -85,6 +73,11 @@ Jitsi has per se some hard requirements to work properly. The first one is the S
 
 This system can be used for very high confidential meetings because the traffic is not leaving the LAN.
 
+Keep in mind that by default the RaspberryPi doesn't have a RTC and therefore the time is not correct. This can be a problem for the SSL certificate or any other time related service.
+
+Remember to add a dependency to `systemd-timesyncd.service` to any time sensitive service.
+
+```bash
 ## Goals
 
 - close to zero latency
@@ -198,7 +191,21 @@ To test the single roles specific yml files have been created:
 - base_infra.yml
 - backend_tole.yml
 - frontend_tole.yml
- 
+
+#### Other ways to run ansible
+Test it without doing any changes on the system
+```bash
+ansible-playbook -i hosts frontend_role.yml --check --diff
+```
+
+ansible-playbook -i hosts install_configure.yml  --extra-vars "create_netplan_config=false" --user=ubuntu
+
+ansible-playbook -i hosts install_configure.yml  --extra-vars "create_netplan_config=false" --start-at-task="Set Jicofo memory limit" --step --user=ubuntu
+
+ansible-playbook -i hosts install_configure.yml  --extra-vars "create_netplan_config=false" --start-at-task "Copy the npm backend service"
+
+ansible-playbook -i hosts install_configure.yml  --extra-vars "create_netplan_config=false" --tags "Recompiles Jitsi VideoBridge2 JAR file"
+
 <details>
 <summary>To see all the configurations done check the details here of look into the IaC folder</summary>
 
